@@ -1,0 +1,37 @@
+@model ILOWLearningSystem.Web.Models.SubmitAssignmentViewModel
+@{
+    ViewData["Title"] = "Submit Assignment";
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h1 class="h4 ilow-page-title m-0">Submit Assignment</h1>
+    <a class="btn btn-sm btn-outline-secondary" asp-controller="Assignment" asp-action="Details" asp-route-id="@Model.AssignmentId">Back to details</a>
+</div>
+
+<div class="p-4 bg-white ilow-card">
+    <form asp-action="Submit" method="post" enctype="multipart/form-data">
+        @Html.AntiForgeryToken()
+        <input asp-for="AssignmentId" type="hidden" />
+
+        <div class="mb-3">
+            <label asp-for="File" class="form-label">Upload file</label>
+            <input asp-for="File" class="form-control" type="file" />
+            <span asp-validation-for="File" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Notes" class="form-label"></label>
+            <textarea asp-for="Notes" class="form-control" rows="4"></textarea>
+            <span asp-validation-for="Notes" class="text-danger"></span>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Submit (placeholder)</button>
+            <a class="btn btn-outline-secondary" asp-controller="Assignment" asp-action="Details" asp-route-id="@Model.AssignmentId">Cancel</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

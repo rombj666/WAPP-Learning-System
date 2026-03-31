@@ -1,0 +1,62 @@
+@model ILOWLearningSystem.Web.Models.AssignmentCreateViewModel
+@{
+    ViewData["Title"] = "Manage Assignments";
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h1 class="h4 ilow-page-title m-0">Manage Assignments</h1>
+    <a class="btn btn-sm btn-outline-secondary" asp-controller="Admin" asp-action="Dashboard">Back to dashboard</a>
+</div>
+
+<div class="row g-4">
+    <div class="col-12 col-lg-7">
+        <div class="p-4 bg-white ilow-card">
+            <div class="fw-semibold mb-2">Existing Assignments</div>
+            <p class="text-muted mb-3">Placeholder list for CourseId: @Model.CourseId.</p>
+            <div class="list-group">
+                <a class="list-group-item list-group-item-action" asp-controller="Assignment" asp-action="Details" asp-route-id="1">Assignment #1 - First Assignment</a>
+                <a class="list-group-item list-group-item-action" asp-controller="Assignment" asp-action="Details" asp-route-id="2">Assignment #2 - Placeholder</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-lg-5">
+        <div class="p-4 bg-white ilow-card">
+            <div class="fw-semibold mb-3">Create Assignment (placeholder)</div>
+            <form method="post" asp-action="ManageAssignments">
+                @Html.AntiForgeryToken()
+                <input asp-for="CourseId" type="hidden" />
+
+                <div class="mb-3">
+                    <label asp-for="Title" class="form-label"></label>
+                    <input asp-for="Title" class="form-control" />
+                    <span asp-validation-for="Title" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Description" class="form-label"></label>
+                    <textarea asp-for="Description" class="form-control" rows="5"></textarea>
+                    <span asp-validation-for="Description" class="text-danger"></span>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-12 col-md-6">
+                        <label asp-for="DueDate" class="form-label"></label>
+                        <input asp-for="DueDate" class="form-control" type="datetime-local" />
+                        <span asp-validation-for="DueDate" class="text-danger"></span>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label asp-for="TotalMarks" class="form-label"></label>
+                        <input asp-for="TotalMarks" class="form-control" type="number" min="0" />
+                        <span asp-validation-for="TotalMarks" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary mt-4">Save (placeholder)</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

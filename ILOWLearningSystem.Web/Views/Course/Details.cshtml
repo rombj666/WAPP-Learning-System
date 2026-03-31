@@ -1,0 +1,33 @@
+@{
+    ViewData["Title"] = "Course Details";
+    var courseId = (int)(ViewData["CourseId"] ?? 0);
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h1 class="h4 ilow-page-title m-0">Course Details</h1>
+    <a class="btn btn-sm btn-outline-secondary" asp-controller="Course" asp-action="Index">Back to list</a>
+</div>
+
+<div class="row g-4">
+    <div class="col-12 col-lg-8">
+        <div class="p-4 bg-white ilow-card">
+            <div class="text-muted small mb-2">CourseId: @courseId</div>
+            <div class="fw-semibold mb-2">Title (placeholder)</div>
+            <p class="text-muted mb-0">Description, category, lecturer name, and image will appear here.</p>
+        </div>
+
+        <div class="p-4 bg-white ilow-card mt-4">
+            <div class="fw-semibold mb-2">Lessons</div>
+            <p class="text-muted mb-3">Navigates to lesson list filtered by course (placeholder).</p>
+            <a class="btn btn-sm btn-outline-primary" asp-controller="Lesson" asp-action="Index" asp-route-courseId="@courseId">View Lessons</a>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-4">
+        <div class="p-4 bg-white ilow-card">
+            <div class="fw-semibold mb-2">Assignments</div>
+            <p class="text-muted mb-3">Navigates to assignment list filtered by course (placeholder).</p>
+            <a class="btn btn-sm btn-outline-primary" asp-controller="Assignment" asp-action="Index" asp-route-courseId="@courseId">View Assignments</a>
+        </div>
+    </div>
+</div>

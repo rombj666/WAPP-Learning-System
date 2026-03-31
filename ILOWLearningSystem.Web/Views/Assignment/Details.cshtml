@@ -1,0 +1,18 @@
+@{
+    ViewData["Title"] = "Assignment Details";
+    var assignmentId = (int)(ViewData["AssignmentId"] ?? 0);
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h1 class="h4 ilow-page-title m-0">Assignment Details</h1>
+    <div class="d-flex gap-2">
+        <a class="btn btn-sm btn-outline-secondary" asp-controller="Assignment" asp-action="Index">Back to list</a>
+        <a class="btn btn-sm btn-primary" asp-controller="Assignment" asp-action="Submit" asp-route-id="@assignmentId">Submit Assignment</a>
+    </div>
+</div>
+
+<div class="p-4 bg-white ilow-card">
+    <div class="text-muted small mb-2">AssignmentId: @assignmentId</div>
+    <div class="fw-semibold mb-2">Title (placeholder)</div>
+    <p class="text-muted mb-0">Description, due date, total marks, and submissions will appear here.</p>
+</div>

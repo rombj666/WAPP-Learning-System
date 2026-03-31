@@ -1,0 +1,60 @@
+@model ILOWLearningSystem.Web.Models.CourseCreateViewModel
+@{
+    ViewData["Title"] = "Manage Courses";
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h1 class="h4 ilow-page-title m-0">Manage Courses</h1>
+    <a class="btn btn-sm btn-outline-secondary" asp-controller="Admin" asp-action="Dashboard">Back to dashboard</a>
+</div>
+
+<div class="row g-4">
+    <div class="col-12 col-lg-7">
+        <div class="p-4 bg-white ilow-card">
+            <div class="fw-semibold mb-2">Existing Courses</div>
+            <p class="text-muted mb-3">Placeholder list. Later this loads from MySQL.</p>
+            <div class="list-group">
+                <a class="list-group-item list-group-item-action" asp-controller="Course" asp-action="Details" asp-route-id="1">Course #1 - Introduction to ILOW</a>
+                <a class="list-group-item list-group-item-action" asp-controller="Course" asp-action="Details" asp-route-id="2">Course #2 - Placeholder</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-lg-5">
+        <div class="p-4 bg-white ilow-card">
+            <div class="fw-semibold mb-3">Create Course (placeholder)</div>
+            <form method="post" asp-action="ManageCourses">
+                @Html.AntiForgeryToken()
+
+                <div class="mb-3">
+                    <label asp-for="Title" class="form-label"></label>
+                    <input asp-for="Title" class="form-control" />
+                    <span asp-validation-for="Title" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Category" class="form-label"></label>
+                    <input asp-for="Category" class="form-control" />
+                    <span asp-validation-for="Category" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="LecturerName" class="form-label"></label>
+                    <input asp-for="LecturerName" class="form-control" />
+                    <span asp-validation-for="LecturerName" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Description" class="form-label"></label>
+                    <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+                    <span asp-validation-for="Description" class="text-danger"></span>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Save (placeholder)</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

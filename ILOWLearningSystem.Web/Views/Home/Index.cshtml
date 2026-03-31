@@ -1,0 +1,31 @@
+@{
+    ViewData["Title"] = "Home";
+}
+
+<div class="row g-4">
+    <div class="col-12 col-lg-8">
+        <div class="p-4 bg-white ilow-card">
+            <h1 class="h3 ilow-page-title mb-2">I.L.O.W Learning System</h1>
+            <p class="text-muted mb-3">
+                Starter ASP.NET Core MVC skeleton for a simplified Moodle-style learning platform.
+                This project contains placeholder pages, navigation, EF Core models, and a MySQL-ready DbContext.
+            </p>
+            <div class="d-flex flex-wrap gap-2">
+                <a class="btn btn-primary" asp-controller="Course" asp-action="Index">Browse Courses</a>
+                <a class="btn btn-outline-secondary" asp-controller="Account" asp-action="Login">Login</a>
+                <a class="btn btn-outline-secondary" asp-controller="Account" asp-action="Register">Register</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-lg-4">
+        <div class="p-4 bg-white ilow-card">
+            <div class="fw-semibold mb-2">Quick Links</div>
+            <div class="list-group">
+                <a class="list-group-item list-group-item-action" asp-controller="Student" asp-action="Dashboard">Student Dashboard</a>
+                <a class="list-group-item list-group-item-action" asp-controller="Admin" asp-action="Dashboard">Admin Dashboard</a>
+                <a class="list-group-item list-group-item-action" asp-controller="Lesson" asp-action="Index">Lesson List</a>
+                <a class="list-group-item list-group-item-action" asp-controller="Assignment" asp-action="Index">Assignment List</a>
+            </div>
+        </div>
+    </div>
+</div>

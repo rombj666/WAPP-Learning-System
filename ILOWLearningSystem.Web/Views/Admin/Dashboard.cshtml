@@ -1,0 +1,32 @@
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h1 class="h4 ilow-page-title m-0">Admin Dashboard</h1>
+    <div class="text-muted small">Admin/Lecturer placeholder</div>
+</div>
+
+<div class="row g-4">
+    <div class="col-12 col-lg-6">
+        <div class="p-4 bg-white ilow-card">
+            <div class="fw-semibold mb-2">Management</div>
+            <div class="list-group">
+                <a class="list-group-item list-group-item-action" asp-controller="Admin" asp-action="ManageUsers">Manage Users</a>
+                <a class="list-group-item list-group-item-action" asp-controller="Admin" asp-action="ManageCourses">Manage Courses</a>
+                <a class="list-group-item list-group-item-action" asp-controller="Admin" asp-action="ManageLessons">Manage Lessons</a>
+                <a class="list-group-item list-group-item-action" asp-controller="Admin" asp-action="ManageAssignments">Manage Assignments</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-lg-6">
+        <div class="p-4 bg-white ilow-card">
+            <div class="fw-semibold mb-2">Announcements</div>
+            <p class="text-muted mb-0">Announcement creation/listing placeholder (schema included).</p>
+        </div>
+        <div class="p-4 bg-white ilow-card mt-4">
+            <div class="fw-semibold mb-2">Stress Tracker</div>
+            <p class="text-muted mb-0">Admin/Lecturer view placeholder for stress insights (schema included).</p>
+        </div>
+    </div>
+</div>

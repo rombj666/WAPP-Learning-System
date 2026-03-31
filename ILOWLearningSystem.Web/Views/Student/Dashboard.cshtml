@@ -1,0 +1,41 @@
+@{
+    ViewData["Title"] = "Student Dashboard";
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h1 class="h4 ilow-page-title m-0">Student Dashboard</h1>
+    <div class="text-muted small">Placeholder dashboard</div>
+</div>
+
+<div class="row g-4">
+    <div class="col-12 col-lg-8">
+        <div class="p-4 bg-white ilow-card">
+            <div class="fw-semibold mb-2">My Courses</div>
+            <p class="text-muted mb-3">Shows enrolled courses (placeholder).</p>
+            <div class="d-flex flex-wrap gap-2">
+                <a class="btn btn-sm btn-outline-primary" asp-controller="Course" asp-action="Details" asp-route-id="1">Open Course #1</a>
+                <a class="btn btn-sm btn-outline-secondary" asp-controller="Course" asp-action="Index">Browse Courses</a>
+            </div>
+        </div>
+
+        <div class="p-4 bg-white ilow-card mt-4">
+            <div class="fw-semibold mb-2">Upcoming Assignments</div>
+            <p class="text-muted mb-3">Lists due assignments (placeholder).</p>
+            <a class="btn btn-sm btn-outline-primary" asp-controller="Assignment" asp-action="Details" asp-route-id="1">Assignment #1</a>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-4">
+        <div class="p-4 bg-white ilow-card">
+            <div class="fw-semibold mb-2">Daily Tasks</div>
+            <p class="text-muted mb-3">Member 2 module placeholder.</p>
+            <button class="btn btn-sm btn-outline-secondary" type="button" disabled>Add Task (placeholder)</button>
+        </div>
+
+        <div class="p-4 bg-white ilow-card mt-4">
+            <div class="fw-semibold mb-2">Stress Tracker</div>
+            <p class="text-muted mb-3">Member 4 module placeholder.</p>
+            <button class="btn btn-sm btn-outline-secondary" type="button" disabled>Record Stress (placeholder)</button>
+        </div>
+    </div>
+</div>
