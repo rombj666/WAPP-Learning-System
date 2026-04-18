@@ -1,5 +1,6 @@
 using ILOWLearningSystem.Web.Data;
 using ILOWLearningSystem.Web.Services;
+using ILOWLearningSystem.Web.Models;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,13 +9,15 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
+// Use SQL Server
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 if (!string.IsNullOrWhiteSpace(connectionString))
 {
     builder.Services.AddDbContext<AppDbContext>(options =>
-        options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 36))));
+        options.UseSqlServer(connectionString));
 }
 
+// Authentication
 builder.Services
     .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -25,6 +28,11 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
+// Email settings
+builder.Services.Configure<EmailSettings>(
+    builder.Configuration.GetSection("EmailSettings"));
+builder.Services.AddScoped<IEmailService, EmailService>();
+// Services
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 var app = builder.Build();
@@ -33,7 +41,6 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
@@ -47,8 +54,7 @@ app.MapStaticAssets();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}")
+    pattern: "{controller=Account}/{action=Login}/{id?}")
     .WithStaticAssets();
-
 
 app.Run();

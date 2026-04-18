@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ILOWLearningSystem.Web.Controllers;
 
 // Member 4: Admin / Lecturer Module + Stress Tracker Feature
-[Authorize(Roles = $"{UserRoles.Admin},{UserRoles.Lecturer}")]
+[Authorize(Roles = UserRoles.Admin + "," + UserRoles.Lecturer)]
 public class AdminController : Controller
 {
     [HttpGet]

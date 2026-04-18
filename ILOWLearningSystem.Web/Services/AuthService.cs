@@ -10,7 +10,7 @@ namespace ILOWLearningSystem.Web.Services;
 // Member 1: User Account Module + Smart Assist Learning Companion
 public interface IAuthService
 {
-    Task<bool> SignInAsync(HttpContext httpContext, string email, string password);
+    Task<(bool Ok, string ErrorMessage)> SignInAsync(HttpContext httpContext, string email, string password);
     Task SignOutAsync(HttpContext httpContext);
     Task<(bool Ok, string ErrorMessage)> RegisterAsync(string fullName, string email, string password, string role);
 }
@@ -24,7 +24,7 @@ public class AuthService : IAuthService
         _db = db;
     }
 
-    public async Task<bool> SignInAsync(HttpContext httpContext, string email, string password)
+    public async Task<(bool Ok, string ErrorMessage)> SignInAsync(HttpContext httpContext, string email, string password)
     {
         var user = await _db.Users
             .AsNoTracking()
@@ -32,12 +32,12 @@ public class AuthService : IAuthService
 
         if (user is null)
         {
-            return false;
+            return (false, "Account not found.");
         }
 
         if (!string.Equals(user.Password, password, StringComparison.Ordinal))
         {
-            return false;
+            return (false, "Incorrect password. Please try again.");
         }
 
         var claims = new List<Claim>
@@ -60,7 +60,7 @@ public class AuthService : IAuthService
                 AllowRefresh = true
             });
 
-        return true;
+        return (true, string.Empty);
     }
 
     public Task SignOutAsync(HttpContext httpContext)

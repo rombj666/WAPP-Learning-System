@@ -34,6 +34,10 @@ public class User
 
     public DateTime CreatedAt { get; set; }
 
+    public string? ResetOtp { get; set; }
+
+    public DateTime? ResetOtpExpiry { get; set; }
+
     public ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
     public ICollection<Submission> Submissions { get; set; } = new List<Submission>();
     public ICollection<DailyTask> DailyTasks { get; set; } = new List<DailyTask>();
