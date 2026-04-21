@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ILOWLearningSystem.Web")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f77df082df4ea44534f182bba4512dddbe5ca816")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d6de878b7ae359bed0942d78d9b27631d62bc3e9")]
 [assembly: System.Reflection.AssemblyProductAttribute("ILOWLearningSystem.Web")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ILOWLearningSystem.Web")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

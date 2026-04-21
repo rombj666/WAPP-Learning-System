@@ -4,46 +4,208 @@
     Layout = "~/Views/Shared/_AuthLayout.cshtml";
 }
 
-<div class="row justify-content-center">
-    <div class="col-12 col-md-8 col-lg-5">
-        <div class="p-4 bg-white ilow-card">
-            <h1 class="h4 ilow-page-title mb-3">Login</h1>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<link rel="stylesheet" href="~/css/login.css" asp-append-version="true" />
 
-            <form asp-action="Login" method="post">
-                @Html.AntiForgeryToken()
-                <input asp-for="ReturnUrl" type="hidden" />
+<div class="premium-login-page">
+    <div class="login-shell">
 
-                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+        <section class="brand-panel">
+            <div class="brand-overlay"></div>
 
-                <div class="mb-3">
-                    <label asp-for="Email" class="form-label"></label>
-                    <input asp-for="Email" class="form-control" />
-                    <span asp-validation-for="Email" class="text-danger"></span>
+            <div class="brand-content">
+                <div class="brand-badge">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                    <span>I.L.O.W Learning System</span>
                 </div>
 
-                <div class="mb-3">
-                    <label asp-for="Password" class="form-label"></label>
-                    <input asp-for="Password" class="form-control" />
-                    <span asp-validation-for="Password" class="text-danger"></span>
+                <h1 class="brand-title">
+                    Learn smarter.<br />
+                    Study with clarity.
+                </h1>
+
+                <p class="brand-subtitle">
+                    A modern learning environment designed to support course access,
+                    revision, productivity, and student wellbeing in one place.
+                </p>
+
+                <div class="brand-highlights">
+                    <div class="highlight-item">
+                        <div class="highlight-icon">
+                            <i class="fa-solid fa-book-open"></i>
+                        </div>
+                        <div>
+                            <h6>Course Access</h6>
+                            <p>Structured learning materials and academic resources.</p>
+                        </div>
+                    </div>
+
+                    <div class="highlight-item">
+                        <div class="highlight-icon">
+                            <i class="fa-solid fa-layer-group"></i>
+                        </div>
+                        <div>
+                            <h6>Revision Tools</h6>
+                            <p>Interactive flashcards and focused study support.</p>
+                        </div>
+                    </div>
+
+                    <div class="highlight-item">
+                        <div class="highlight-icon">
+                            <i class="fa-solid fa-chart-line"></i>
+                        </div>
+                        <div>
+                            <h6>Progress Tracking</h6>
+                            <p>Monitor development and keep your learning on track.</p>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-primary">Log in</button>
-                    <a class="btn btn-outline-secondary" asp-controller="Account" asp-action="Register">Create account</a>
+                <div class="info-strip">
+                    <div class="info-card">
+                        <span class="info-label">Platform</span>
+                        <strong>Student-focused</strong>
+                    </div>
+                    <div class="info-card">
+                        <span class="info-label">Experience</span>
+                        <strong>Clean & modern</strong>
+                    </div>
+                    <div class="info-card">
+                        <span class="info-label">Access</span>
+                        <strong>Secure login</strong>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="form-panel">
+            <div class="login-card">
+                <div class="login-top">
+                    <div class="login-logo">
+                        <i class="fa-solid fa-user-shield"></i>
+                    </div>
+                    <h2>Welcome Back</h2>
+                    <p>Sign in to continue to your learning dashboard.</p>
                 </div>
 
-                
-                <div class="mt-3 text-center">
-                    <a asp-controller="Account" asp-action="ForgotPassword">Forgot Password?</a>
-                </div>
+                <form asp-action="Login" method="post">
+                    @Html.AntiForgeryToken()
+                    <input asp-for="ReturnUrl" type="hidden" />
 
-                <div class="mt-3 text-muted small">
-                    Seed login: admin@ilow.local / admin123, student1@ilow.local / student123
-                </div>
-            </form>
-        </div>
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <div class="form-field">
+                        <label asp-for="Email" class="form-label"></label>
+                        <div class="input-wrap">
+                            <span class="input-icon">
+                                <i class="fa-regular fa-envelope"></i>
+                            </span>
+                            <input asp-for="Email" class="form-control premium-input" placeholder="Enter your email" />
+                        </div>
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+
+                    <div class="form-field">
+                        <label asp-for="Password" class="form-label"></label>
+                        <div class="input-wrap">
+                            <span class="input-icon">
+                                <i class="fa-solid fa-lock"></i>
+                            </span>
+                            <input asp-for="Password" type="password" class="form-control premium-input" placeholder="Enter your password" />
+                        </div>
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    </div>
+
+                    <div class="login-actions">
+                        <button type="submit" class="btn btn-primary premium-btn-primary">
+                            Log in
+                        </button>
+
+                        <a class="btn premium-btn-secondary"
+                               asp-controller="Account"
+                               asp-action="Register">
+                            Create account
+                        </a>
+                    </div>
+
+                    <div class="login-links">
+                        <a asp-controller="Account" asp-action="ForgotPassword">Forgot Password?</a>
+                    </div>
+
+                    <div class="seed-box">
+                        <div class="seed-title">Demo accounts</div>
+                        <div class="seed-item">
+                            <span>Admin</span>
+                            <strong>admin@ilow.local / admin123</strong>
+                        </div>
+                        <div class="seed-item">
+                            <span>Student</span>
+                            <strong>student1@ilow.local / student123</strong>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </section>
     </div>
+
+    <section class="feature-section">
+        <div class="feature-header">
+            <span class="section-badge">Explore the platform</span>
+            <h3>Everything students need, in one connected experience</h3>
+            <p>
+                Discover the key modules available inside the system before signing in.
+            </p>
+        </div>
+
+        <div class="feature-grid">
+            <a class="feature-card wide-card" href="/Course">
+                <div class="feature-icon">
+                    <i class="fa-solid fa-book"></i>
+                </div>
+                <div class="feature-text">
+                    <h4>Course Materials</h4>
+                    <p>
+                        Access learning resources, lecture content, and structured course materials in a more organized way.
+                    </p>
+                </div>
+                <div class="feature-arrow">
+                    <i class="fa-solid fa-arrow-right"></i>
+                </div>
+            </a>
+
+            <a class="feature-card wide-card" href="/Flashcard">
+                <div class="feature-icon">
+                    <i class="fa-solid fa-layer-group"></i>
+                </div>
+                <div class="feature-text">
+                    <h4>Flashcards</h4>
+                    <p>
+                        Support revision with interactive study tools designed to make learning faster and more effective.
+                    </p>
+                </div>
+                <div class="feature-arrow">
+                    <i class="fa-solid fa-arrow-right"></i>
+                </div>
+            </a>
+
+            <a class="feature-card wide-card" href="/Stress">
+                <div class="feature-icon">
+                    <i class="fa-solid fa-heart-pulse"></i>
+                </div>
+                <div class="feature-text">
+                    <h4>Stress Tracker</h4>
+                    <p>
+                        Encourage healthier study habits by monitoring wellbeing and supporting balanced academic progress.
+                    </p>
+                </div>
+                <div class="feature-arrow">
+                    <i class="fa-solid fa-arrow-right"></i>
+                </div>
+            </a>
+        </div>
+    </section>
 </div>
+
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
