@@ -74,6 +74,33 @@ public class AccountController : Controller
         return View(new RegisterViewModel());
     }
 
+    [HttpPost]
+    [AllowAnonymous]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Register(RegisterViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        var (ok, errorMessage) = await _authService.RegisterAsync(
+            model.FullName,
+            model.Email,
+            model.Password,
+            UserRoles.Student
+        );
+
+        if (!ok)
+        {
+            ModelState.AddModelError(string.Empty, errorMessage);
+            return View(model);
+        }
+
+        await _authService.SignInAsync(HttpContext, model.Email, model.Password);
+        return RedirectToAction("Dashboard", "Student");
+    }
+
     [HttpGet]
     [AllowAnonymous]
     public IActionResult ForgotPassword()
@@ -81,11 +108,85 @@ public class AccountController : Controller
         return View(new ForgotPasswordViewModel());
     }
 
+    [HttpPost]
+    [AllowAnonymous]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == model.Email);
+
+        if (user == null)
+        {
+            ModelState.AddModelError(string.Empty, "No account found with that email.");
+            return View(model);
+        }
+
+        var otp = new Random().Next(100000, 999999).ToString();
+
+        user.ResetOtp = otp;
+        user.ResetOtpExpiry = DateTime.UtcNow.AddMinutes(5);
+
+        await _db.SaveChangesAsync();
+
+        var subject = "ILOW Password Reset OTP";
+        var body = $"Your OTP code is: {otp}. It will expire in 5 minutes.";
+
+        await _emailService.SendEmailAsync(model.Email, subject, body);
+
+        TempData["OtpMessage"] = "OTP has been sent to your email.";
+
+        return RedirectToAction("VerifyOtp", new { email = model.Email });
+    }
+
     [HttpGet]
     [AllowAnonymous]
     public IActionResult VerifyOtp(string email)
     {
         return View(new VerifyOtpViewModel { Email = email });
+    }
+
+    [HttpPost]
+    [AllowAnonymous]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> VerifyOtp(VerifyOtpViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == model.Email);
+
+        if (user == null)
+        {
+            ModelState.AddModelError(string.Empty, "Account not found.");
+            return View(model);
+        }
+
+        if (string.IsNullOrWhiteSpace(user.ResetOtp) || user.ResetOtpExpiry == null)
+        {
+            ModelState.AddModelError(string.Empty, "No OTP request found. Please request a new OTP.");
+            return View(model);
+        }
+
+        if (DateTime.UtcNow > user.ResetOtpExpiry.Value)
+        {
+            ModelState.AddModelError(string.Empty, "OTP has expired. Please request a new OTP.");
+            return View(model);
+        }
+
+        if (!string.Equals(user.ResetOtp, model.Otp, StringComparison.Ordinal))
+        {
+            ModelState.AddModelError(string.Empty, "Invalid OTP. Please try again.");
+            return View(model);
+        }
+
+        return RedirectToAction("ResetPassword", new { email = model.Email, otp = model.Otp });
     }
 
     [HttpGet]
@@ -145,107 +246,6 @@ public class AccountController : Controller
         return RedirectToAction("Login");
     }
 
-    [HttpPost]
-    [AllowAnonymous]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> VerifyOtp(VerifyOtpViewModel model)
-    {
-        if (!ModelState.IsValid)
-        {
-            return View(model);
-        }
-
-        var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == model.Email);
-
-        if (user == null)
-        {
-            ModelState.AddModelError(string.Empty, "Account not found.");
-            return View(model);
-        }
-
-        if (string.IsNullOrWhiteSpace(user.ResetOtp) || user.ResetOtpExpiry == null)
-        {
-            ModelState.AddModelError(string.Empty, "No OTP request found. Please request a new OTP.");
-            return View(model);
-        }
-
-        if (DateTime.UtcNow > user.ResetOtpExpiry.Value)
-        {
-            ModelState.AddModelError(string.Empty, "OTP has expired. Please request a new OTP.");
-            return View(model);
-        }
-
-        if (!string.Equals(user.ResetOtp, model.Otp, StringComparison.Ordinal))
-        {
-            ModelState.AddModelError(string.Empty, "Invalid OTP. Please try again.");
-            return View(model);
-        }
-
-        return RedirectToAction("ResetPassword", new { email = model.Email, otp = model.Otp });
-    }
-
-    [HttpPost]
-    [AllowAnonymous]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
-    {
-        if (!ModelState.IsValid)
-        {
-            return View(model);
-        }
-
-        var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == model.Email);
-
-        if (user == null)
-        {
-            ModelState.AddModelError(string.Empty, "No account found with that email.");
-            return View(model);
-        }
-
-        var otp = new Random().Next(100000, 999999).ToString();
-
-        user.ResetOtp = otp;
-        user.ResetOtpExpiry = DateTime.UtcNow.AddMinutes(5);
-
-        await _db.SaveChangesAsync();
-
-        var subject = "ILOW Password Reset OTP";
-        var body = $"Your OTP code is: {otp}. It will expire in 5 minutes.";
-
-        await _emailService.SendEmailAsync(model.Email, subject, body);
-
-        TempData["OtpMessage"] = "OTP has been sent to your email.";
-
-        return RedirectToAction("VerifyOtp", new { email = model.Email });
-    }
-
-    [HttpPost]
-    [AllowAnonymous]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Register(RegisterViewModel model)
-    {
-        if (!ModelState.IsValid)
-        {
-            return View(model);
-        }
-
-        var (ok, errorMessage) = await _authService.RegisterAsync(
-            model.FullName,
-            model.Email,
-            model.Password,
-            UserRoles.Student
-        );
-
-        if (!ok)
-        {
-            ModelState.AddModelError(string.Empty, errorMessage);
-            return View(model);
-        }
-
-        await _authService.SignInAsync(HttpContext, model.Email, model.Password);
-        return RedirectToAction("Dashboard", "Student");
-    }
-
     [Authorize]
     [HttpGet]
     public async Task<IActionResult> Logout()
@@ -273,5 +273,70 @@ public class AccountController : Controller
         }
 
         return View(user);
+    }
+
+    [Authorize]
+    [HttpGet]
+    public async Task<IActionResult> EditProfile()
+    {
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+        {
+            return RedirectToAction("Login");
+        }
+
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.UserId == userId);
+
+        if (user == null)
+        {
+            return RedirectToAction("Login");
+        }
+
+        var model = new EditProfileViewModel
+        {
+            FullName = user.FullName,
+            Email = user.Email,
+            ProfileThemeColor = string.IsNullOrWhiteSpace(user.ProfileThemeColor)
+                ? "#163b7a"
+                : user.ProfileThemeColor
+        };
+
+        return View(model);
+    }
+
+    [Authorize]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EditProfile(EditProfileViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+        {
+            return RedirectToAction("Login");
+        }
+
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.UserId == userId);
+
+        if (user == null)
+        {
+            return RedirectToAction("Login");
+        }
+
+        user.FullName = model.FullName;
+        user.ProfileThemeColor = string.IsNullOrWhiteSpace(model.ProfileThemeColor)
+            ? "#163b7a"
+            : model.ProfileThemeColor;
+
+        await _db.SaveChangesAsync();
+
+        TempData["SuccessMessage"] = "Profile updated successfully.";
+        return RedirectToAction("Profile");
     }
 }

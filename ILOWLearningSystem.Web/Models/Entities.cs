@@ -38,6 +38,8 @@ public class User
 
     public DateTime? ResetOtpExpiry { get; set; }
 
+    public string? ProfileThemeColor { get; set; }
+
     public ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
     public ICollection<Submission> Submissions { get; set; } = new List<Submission>();
     public ICollection<DailyTask> DailyTasks { get; set; } = new List<DailyTask>();
@@ -261,3 +263,5 @@ public class Announcement
 
     public User? CreatedByUser { get; set; }
 }
+
+

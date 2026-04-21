@@ -2,34 +2,273 @@
 
 @{
     ViewData["Title"] = "My Profile";
+    var initial = !string.IsNullOrWhiteSpace(Model.FullName)
+        ? Model.FullName.Substring(0, 1).ToUpper()
+        : "U";
+
+    var themeColor = string.IsNullOrWhiteSpace(Model.ProfileThemeColor)
+        ? "#163b7a"
+        : Model.ProfileThemeColor;
 }
 
-<div class="row justify-content-center">
-    <div class="col-md-8 col-lg-6">
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <h2 class="mb-4">My Profile</h2>
+<div class="container py-4">
+    <div class="profile-wrapper">
 
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Full Name</label>
-                    <div class="form-control">@Model.FullName</div>
-                </div>
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success rounded-3">
+                @TempData["SuccessMessage"]
+            </div>
+        }
 
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Email</label>
-                    <div class="form-control">@Model.Email</div>
-                </div>
+        <div class="profile-hero card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+            <div class="profile-hero-bg" style="background: linear-gradient(135deg, @themeColor 0%, @themeColor 100%);"></div>
 
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Role</label>
-                    <div class="form-control">@Model.Role</div>
-                </div>
+            <div class="card-body p-4 p-md-5 position-relative">
+                <div class="row align-items-center g-4">
+                    <div class="col-lg-8">
+                        <div class="d-flex align-items-center gap-4 flex-wrap">
+                            <div class="profile-avatar">
+                                @initial
+                            </div>
 
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Created At</label>
-                    <div class="form-control">@Model.CreatedAt.ToString("dd/MM/yyyy hh:mm tt")</div>
+                            <div>
+                                <h1 class="fw-bold mb-2 profile-name">@Model.FullName</h1>
+                                <p class="text-muted mb-2 profile-email">@Model.Email</p>
+                                <p class="text-uppercase small fw-semibold mb-3 text-secondary">Student Account</p>
+
+                                <div class="d-flex flex-wrap gap-2">
+                                    <span class="badge rounded-pill text-bg-primary px-3 py-2">@Model.Role</span>
+                                    <span class="badge rounded-pill bg-light text-dark border px-3 py-2">
+                                        Joined @Model.CreatedAt.ToString("dd MMM yyyy")
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4">
+                        <div class="profile-actions d-grid gap-2">
+                            <a asp-action="EditProfile" class="btn btn-dark rounded-3">Edit Profile</a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
+
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm rounded-4 h-100">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h3 class="fw-bold mb-0">Account Details</h3>
+                            <span class="text-muted small">Personal information</span>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="info-card">
+                                    <div class="info-label">Full Name</div>
+                                    <div class="info-value">@Model.FullName</div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="info-card">
+                                    <div class="info-label">Email Address</div>
+                                    <div class="info-value text-break">@Model.Email</div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="info-card">
+                                    <div class="info-label">Role</div>
+                                    <div class="info-value">@Model.Role</div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="info-card">
+                                    <div class="info-label">Created At</div>
+                                    <div class="info-value">@Model.CreatedAt.ToString("dd/MM/yyyy hh:mm tt")</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm rounded-4 mb-4">
+                    <div class="card-body p-4">
+                        <h4 class="fw-bold mb-3">Account Status</h4>
+
+                        <div class="status-box mb-3">
+                            <span class="status-dot"></span>
+                            <span>Active Account</span>
+                        </div>
+
+                        <div class="small text-muted">
+                            Your student profile is active and available for course access, lessons, and assignments.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm rounded-4">
+                    <div class="card-body p-4">
+                        <h4 class="fw-bold mb-3">Quick Summary</h4>
+
+                        <div class="summary-item">
+                            <span class="summary-label">User Type</span>
+                            <span class="summary-value">@Model.Role</span>
+                        </div>
+
+                        <div class="summary-item">
+                            <span class="summary-label">Member Since</span>
+                            <span class="summary-value">@Model.CreatedAt.ToString("dd MMM yyyy")</span>
+                        </div>
+
+                        <div class="summary-item">
+                            <span class="summary-label">Portal Access</span>
+                            <span class="summary-value">Enabled</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
+
+<style>
+    .profile-wrapper {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .profile-hero {
+        position: relative;
+        background: #fff;
+    }
+
+    .profile-hero-bg {
+        height: 140px;
+    }
+
+    .profile-hero .card-body {
+        margin-top: -40px;
+    }
+
+    .profile-avatar {
+        width: 110px;
+        height: 110px;
+        min-width: 110px;
+        border-radius: 50%;
+        background: #ffffff;
+        color: #0b1f4d;
+        border: 5px solid #ffffff;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 38px;
+        font-weight: 700;
+    }
+
+    .profile-name {
+        font-size: 2rem;
+        line-height: 1.2;
+    }
+
+    .profile-email {
+        font-size: 1rem;
+    }
+
+    .info-card {
+        height: 100%;
+        background: #f8fafc;
+        border: 1px solid #e9edf3;
+        border-radius: 18px;
+        padding: 18px 20px;
+        transition: all 0.2s ease;
+    }
+
+        .info-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+        }
+
+    .info-label {
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #6c757d;
+        margin-bottom: 8px;
+    }
+
+    .info-value {
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: #1f2937;
+    }
+
+    .status-box {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: #eefbf3;
+        color: #198754;
+        padding: 10px 14px;
+        border-radius: 12px;
+        font-weight: 600;
+        border: 1px solid #d1f0dc;
+    }
+
+    .status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #198754;
+        display: inline-block;
+    }
+
+    .summary-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid #edf1f5;
+    }
+
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+
+    .summary-label {
+        color: #6c757d;
+        font-weight: 500;
+    }
+
+    .summary-value {
+        color: #111827;
+        font-weight: 700;
+    }
+
+    @@media (max-width: 768px) {
+        .profile-hero .card-body {
+            margin-top: -55px;
+        }
+
+        .profile-avatar {
+            width: 90px;
+            height: 90px;
+            min-width: 90px;
+            font-size: 30px;
+        }
+
+        .profile-name {
+            font-size: 1.6rem;
+        }
+    }
+</style>
