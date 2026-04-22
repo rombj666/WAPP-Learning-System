@@ -1,0 +1,13 @@
+﻿.vs/
+.vscode/
+**/bin/
+**/obj/
+*.user
+*.suo
+*.dll
+*.exe
+*.pdb
+*.cache
+*.log
+.DS_Store
+appsettings.Development.json

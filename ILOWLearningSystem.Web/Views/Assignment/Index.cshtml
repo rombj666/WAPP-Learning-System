@@ -1,0 +1,27 @@
+@{
+    ViewData["Title"] = "Assignment List";
+    var courseId = ViewData["CourseId"] as int?;
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h1 class="h4 ilow-page-title m-0">Assignment List</h1>
+    <div class="d-flex gap-2">
+        <a class="btn btn-sm btn-outline-secondary" asp-controller="Admin" asp-action="ManageAssignments" asp-route-courseId="@(courseId ?? 1)">Manage Assignments</a>
+        <a class="btn btn-sm btn-primary" asp-controller="Assignment" asp-action="Create" asp-route-courseId="@(courseId ?? 1)">Create Assignment</a>
+    </div>
+</div>
+
+<div class="p-4 bg-white ilow-card">
+    <p class="text-muted mb-3">
+        Placeholder list @if (courseId is not null) { <text>(CourseId: @courseId)</text> }.
+        Later this loads from MySQL via AppDbContext.
+    </p>
+    <div class="list-group">
+        <a class="list-group-item list-group-item-action" asp-controller="Assignment" asp-action="Details" asp-route-id="1">
+            Assignment #1 - First Assignment
+        </a>
+        <a class="list-group-item list-group-item-action" asp-controller="Assignment" asp-action="Details" asp-route-id="2">
+            Assignment #2 - Placeholder
+        </a>
+    </div>
+</div>

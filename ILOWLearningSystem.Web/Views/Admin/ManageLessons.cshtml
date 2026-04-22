@@ -1,0 +1,49 @@
+@model ILOWLearningSystem.Web.Models.LessonCreateViewModel
+@{
+    ViewData["Title"] = "Manage Lessons";
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h1 class="h4 ilow-page-title m-0">Manage Lessons</h1>
+    <a class="btn btn-sm btn-outline-secondary" asp-controller="Admin" asp-action="Dashboard">Back to dashboard</a>
+</div>
+
+<div class="row g-4">
+    <div class="col-12 col-lg-7">
+        <div class="p-4 bg-white ilow-card">
+            <div class="fw-semibold mb-2">Existing Lessons</div>
+            <p class="text-muted mb-3">Placeholder list for CourseId: @Model.CourseId.</p>
+            <div class="list-group">
+                <a class="list-group-item list-group-item-action" asp-controller="Lesson" asp-action="Details" asp-route-id="1">Lesson #1 - Welcome Lesson</a>
+                <a class="list-group-item list-group-item-action" asp-controller="Lesson" asp-action="Details" asp-route-id="2">Lesson #2 - Placeholder</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-lg-5">
+        <div class="p-4 bg-white ilow-card">
+            <div class="fw-semibold mb-3">Create Lesson (placeholder)</div>
+            <form method="post" asp-action="ManageLessons">
+                @Html.AntiForgeryToken()
+                <input asp-for="CourseId" type="hidden" />
+
+                <div class="mb-3">
+                    <label asp-for="Title" class="form-label"></label>
+                    <input asp-for="Title" class="form-control" />
+                    <span asp-validation-for="Title" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Content" class="form-label"></label>
+                    <textarea asp-for="Content" class="form-control" rows="6"></textarea>
+                    <span asp-validation-for="Content" class="text-danger"></span>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Save (placeholder)</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

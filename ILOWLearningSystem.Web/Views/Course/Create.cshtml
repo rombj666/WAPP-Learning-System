@@ -1,0 +1,49 @@
+@model ILOWLearningSystem.Web.Models.CourseCreateViewModel
+@{
+    ViewData["Title"] = "Create Course";
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h1 class="h4 ilow-page-title m-0">Create Course</h1>
+    <a class="btn btn-sm btn-outline-secondary" asp-controller="Course" asp-action="Index">Back to list</a>
+</div>
+
+<div class="p-4 bg-white ilow-card">
+    <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+
+        <div class="mb-3">
+            <label asp-for="Title" class="form-label"></label>
+            <input asp-for="Title" class="form-control" />
+            <span asp-validation-for="Title" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Description" class="form-label"></label>
+            <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+            <span asp-validation-for="Description" class="text-danger"></span>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-12 col-md-6">
+                <label asp-for="Category" class="form-label"></label>
+                <input asp-for="Category" class="form-control" />
+                <span asp-validation-for="Category" class="text-danger"></span>
+            </div>
+            <div class="col-12 col-md-6">
+                <label asp-for="LecturerName" class="form-label"></label>
+                <input asp-for="LecturerName" class="form-control" />
+                <span asp-validation-for="LecturerName" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2 mt-4">
+            <button type="submit" class="btn btn-primary">Save (placeholder)</button>
+            <a class="btn btn-outline-secondary" asp-controller="Admin" asp-action="ManageCourses">Manage Courses</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
