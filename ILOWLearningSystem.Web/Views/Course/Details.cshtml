@@ -1,33 +1,249 @@
+@model ILOWLearningSystem.Web.Models.Course
 @{
-    ViewData["Title"] = "Course Details";
-    var courseId = (int)(ViewData["CourseId"] ?? 0);
+    ViewData["Title"] = Model.Title;
+    bool isEnrolled = ViewBag.IsEnrolled ?? false;
 }
 
-<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-    <h1 class="h4 ilow-page-title m-0">Course Details</h1>
-    <a class="btn btn-sm btn-outline-secondary" asp-controller="Course" asp-action="Index">Back to list</a>
-</div>
-
 <div class="row g-4">
-    <div class="col-12 col-lg-8">
-        <div class="p-4 bg-white ilow-card">
-            <div class="text-muted small mb-2">CourseId: @courseId</div>
-            <div class="fw-semibold mb-2">Title (placeholder)</div>
-            <p class="text-muted mb-0">Description, category, lecturer name, and image will appear here.</p>
+    <!-- Main Content Area -->
+    <div class="col-lg-8">
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-controller="Student" asp-action="Dashboard" class="text-primary text-decoration-none">Dashboard</a></li>
+                <li class="breadcrumb-item"><a asp-controller="Course" asp-action="Index" class="text-primary text-decoration-none">Courses</a></li>
+                <li class="breadcrumb-item active">@Model.Title</li>
+            </ol>
+        </nav>
+
+        <div class="premium-card p-0 mb-4">
+            @if (!string.IsNullOrEmpty(Model.ImagePath))
+            {
+                <img src="@Model.ImagePath" class="w-100" style="height: 300px; object-fit: cover;" alt="@Model.Title">
+            }
+            <div class="p-4 p-md-5">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <span class="badge bg-primary-soft text-primary mb-2 px-3 py-2 rounded-pill">@Model.Category</span>
+                        <h1 class="display-5 fw-bold mb-0">@Model.Title</h1>
+                    </div>
+                </div>
+                <p class="text-muted lead">@Model.Description</p>
+            </div>
         </div>
 
-        <div class="p-4 bg-white ilow-card mt-4">
-            <div class="fw-semibold mb-2">Lessons</div>
-            <p class="text-muted mb-3">Navigates to lesson list filtered by course (placeholder).</p>
-            <a class="btn btn-sm btn-outline-primary" asp-controller="Lesson" asp-action="Index" asp-route-courseId="@courseId">View Lessons</a>
-        </div>
+        @if (isEnrolled)
+        {
+            <!-- Segmented Navigation (Tabs) -->
+            <div class="mb-4">
+                <ul class="nav nav-pills-premium" id="courseTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="overview-tab" data-bs-toggle="pill" data-bs-target="#overview" type="button" role="tab">Overview</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="lessons-tab" data-bs-toggle="pill" data-bs-target="#lessons" type="button" role="tab">Lessons</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="assignments-tab" data-bs-toggle="pill" data-bs-target="#assignments" type="button" role="tab">Assignments</button>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="tab-content" id="courseTabsContent">
+                <!-- Overview Tab -->
+                <div class="tab-pane fade show active" id="overview" role="tabpanel">
+                    <div class="premium-card p-4">
+                        <h3 class="h4 fw-bold mb-4">About this Course</h3>
+                        <p>@Model.Description</p>
+                        <hr class="my-4">
+                        <div class="row g-4">
+                            <div class="col-md-4">
+                                <div class="text-center">
+                                    <div class="h3 fw-bold text-primary mb-1">@Model.Lessons.Count</div>
+                                    <div class="text-muted small text-uppercase fw-bold">Lessons</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center">
+                                    <div class="h3 fw-bold text-primary mb-1">@Model.Assignments.Count</div>
+                                    <div class="text-muted small text-uppercase fw-bold">Assignments</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center">
+                                    <div class="h3 fw-bold text-primary mb-1">@Model.Enrollments.Count</div>
+                                    <div class="text-muted small text-uppercase fw-bold">Students</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lessons Tab -->
+                <div class="tab-pane fade" id="lessons" role="tabpanel">
+                    <div class="premium-card p-0">
+                        <div class="list-group list-group-flush">
+                            @if (Model.Lessons.Any())
+                            {
+                                @foreach (var lesson in Model.Lessons.OrderBy(l => l.LessonId))
+                                {
+                                    <a asp-controller="Lesson" asp-action="Details" asp-route-id="@lesson.LessonId" class="list-group-item list-group-item-action p-4 border-0 border-bottom">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-light rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                                <i class="fa-solid fa-play text-primary small"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="fw-bold mb-0">@lesson.Title</h6>
+                                                <small class="text-muted">Click to start learning</small>
+                                            </div>
+                                            <i class="fa-solid fa-chevron-right ms-auto text-muted small"></i>
+                                        </div>
+                                    </a>
+                                }
+                            }
+                            else
+                            {
+                                <div class="p-5 text-center">
+                                    <p class="text-muted mb-0">No lessons available yet.</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Assignments Tab -->
+                <div class="tab-pane fade" id="assignments" role="tabpanel">
+                    <div class="premium-card p-0">
+                        <div class="list-group list-group-flush">
+                            @if (Model.Assignments.Any())
+                            {
+                                var studentSubmissions = ViewBag.Submissions as Dictionary<int, string> ?? new Dictionary<int, string>();
+                                @foreach (var assignment in Model.Assignments.OrderBy(a => a.DueDate))
+                                {
+                                    studentSubmissions.TryGetValue(assignment.AssignmentId, out var status);
+                                    <a asp-controller="Assignment" asp-action="Details" asp-route-id="@assignment.AssignmentId" class="list-group-item list-group-item-action p-4 border-0 border-bottom">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-light rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                                <i class="fa-solid fa-file-lines text-primary small"></i>
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <div class="d-flex justify-content-between align-items-start">
+                                                    <div>
+                                                        <h6 class="fw-bold mb-0">@assignment.Title</h6>
+                                                        <div class="d-flex gap-2 mt-1">
+                                                            @if (assignment.DueDate.HasValue)
+                                                            {
+                                                                <small class="@(assignment.DueDate < DateTime.UtcNow ? "text-danger" : "text-muted") fw-bold">
+                                                                    Due: @assignment.DueDate?.ToString("MMM dd, yyyy")
+                                                                </small>
+                                                            }
+                                                            @if (status != null)
+                                                            {
+                                                                <span class="status-badge status-@status.Replace(" ", "-").ToLower() py-0 px-2" style="font-size: 0.65rem;">
+                                                                    @status
+                                                                </span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="status-badge status-pending py-0 px-2" style="font-size: 0.65rem;">
+                                                                    Pending
+                                                                </span>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <i class="fa-solid fa-chevron-right ms-4 text-muted small"></i>
+                                        </div>
+                                    </a>
+                                }
+                            }
+                            else
+                            {
+                                <div class="p-5 text-center">
+                                    <p class="text-muted mb-0">No assignments available yet.</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="premium-card p-5 text-center mt-4">
+                <i class="fa-solid fa-lock text-muted mb-3" style="font-size: 3rem;"></i>
+                <h3 class="fw-bold">Course Locked</h3>
+                <p class="text-muted mb-4">Enroll in this course to access lessons and assignments.</p>
+                <form asp-action="Enroll" asp-route-id="@Model.CourseId" method="post">
+                    <button type="submit" class="premium-btn premium-btn-primary px-5">Enroll Now</button>
+                </form>
+            </div>
+        }
     </div>
 
-    <div class="col-12 col-lg-4">
-        <div class="p-4 bg-white ilow-card">
-            <div class="fw-semibold mb-2">Assignments</div>
-            <p class="text-muted mb-3">Navigates to assignment list filtered by course (placeholder).</p>
-            <a class="btn btn-sm btn-outline-primary" asp-controller="Assignment" asp-action="Index" asp-route-courseId="@courseId">View Assignments</a>
+    <!-- Right Sidebar -->
+    <div class="col-lg-4">
+        <!-- Card 1: Course Info -->
+        <div class="premium-card p-4 mb-4">
+            <h3 class="h5 fw-bold mb-4">Course Details</h3>
+            <div class="mb-3 d-flex align-items-center">
+                <div class="bg-light rounded-circle p-2 me-3">
+                    <i class="fa-solid fa-user-tie text-primary" style="width: 20px; text-align: center;"></i>
+                </div>
+                <div>
+                    <div class="small text-muted">Lecturer</div>
+                    <div class="fw-bold">@Model.LecturerName</div>
+                </div>
+            </div>
+            <div class="mb-3 d-flex align-items-center">
+                <div class="bg-light rounded-circle p-2 me-3">
+                    <i class="fa-solid fa-tags text-primary" style="width: 20px; text-align: center;"></i>
+                </div>
+                <div>
+                    <div class="small text-muted">Category</div>
+                    <div class="fw-bold">@Model.Category</div>
+                </div>
+            </div>
+            <div class="mb-0 d-flex align-items-center">
+                <div class="bg-light rounded-circle p-2 me-3">
+                    <i class="fa-solid fa-calendar-day text-primary" style="width: 20px; text-align: center;"></i>
+                </div>
+                <div>
+                    <div class="small text-muted">Created</div>
+                    <div class="fw-bold">@Model.CreatedAt.ToString("MMM dd, yyyy")</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 2: Navigation / Actions -->
+        <div class="premium-card p-4">
+            <h3 class="h5 fw-bold mb-4">Quick Navigation</h3>
+            <div class="nav-btn-list">
+                <a asp-controller="Student" asp-action="Dashboard" class="nav-btn-item">
+                    <i class="fa-solid fa-table-columns"></i> Back to Dashboard
+                </a>
+                @if (isEnrolled)
+                {
+                    <a asp-controller="Submission" asp-action="MyStatus" class="nav-btn-item">
+                        <i class="fa-solid fa-clock-rotate-left"></i> My Submission Status
+                    </a>
+                }
+                <a asp-controller="Course" asp-action="Index" class="nav-btn-item">
+                    <i class="fa-solid fa-book"></i> Browse All Courses
+                </a>
+            </div>
         </div>
     </div>
 </div>
+
+<style>
+    .bg-primary-soft {
+        background-color: rgba(124, 77, 255, 0.1);
+    }
+    .text-truncate-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+</style>

@@ -1,50 +1,80 @@
+using ILOWLearningSystem.Web.Data;
 using ILOWLearningSystem.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace ILOWLearningSystem.Web.Controllers;
 
-// Member 3: Lesson & Assignment Module + AI-Generated Flashcard Revision Tool
 [Authorize]
 public class AssignmentController : Controller
 {
-    [HttpGet]
-    [AllowAnonymous]
-    public IActionResult Index(int? courseId = null)
+    private readonly AppDbContext _db;
+
+    public AssignmentController(AppDbContext db)
     {
-        ViewData["CourseId"] = courseId;
-        return View();
+        _db = db;
+    }
+
+    private int GetCurrentUserId()
+    {
+        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        return int.TryParse(userIdStr, out var id) ? id : 0;
     }
 
     [HttpGet]
     [AllowAnonymous]
-    public IActionResult Details(int id = 1)
+    public async Task<IActionResult> ByCourse(int courseId)
     {
-        ViewData["AssignmentId"] = id;
-        return View();
-    }
+        var course = await _db.Courses
+            .Include(c => c.Assignments)
+            .FirstOrDefaultAsync(c => c.CourseId == courseId);
 
-    [HttpGet]
-    public IActionResult Submit(int id = 1)
-    {
-        return View(new SubmitAssignmentViewModel { AssignmentId = id });
-    }
-
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public IActionResult Submit(SubmitAssignmentViewModel model)
-    {
-        if (!ModelState.IsValid)
+        if (course == null)
         {
-            return View(model);
+            return NotFound();
         }
 
-        return RedirectToAction(nameof(Details), new { id = model.AssignmentId });
+        if (User.IsInRole(UserRoles.Student))
+        {
+            var userId = GetCurrentUserId();
+            var submissions = await _db.Submissions
+                .Where(s => s.UserId == userId && course.Assignments.Select(a => a.AssignmentId).Contains(s.AssignmentId))
+                .ToDictionaryAsync(s => s.AssignmentId, s => s.Status);
+            ViewBag.Submissions = submissions;
+        }
+
+        return View(course);
+    }
+
+    [HttpGet]
+    [AllowAnonymous]
+    public async Task<IActionResult> Details(int id)
+    {
+        var assignment = await _db.Assignments
+            .Include(a => a.Course)
+            .FirstOrDefaultAsync(a => a.AssignmentId == id);
+
+        if (assignment == null)
+        {
+            return NotFound();
+        }
+
+        if (User.IsInRole(UserRoles.Student))
+        {
+            var userId = GetCurrentUserId();
+            var submission = await _db.Submissions
+                .FirstOrDefaultAsync(s => s.AssignmentId == id && s.UserId == userId);
+            ViewBag.Submission = submission;
+        }
+
+        return View(assignment);
     }
 
     [HttpGet]
     [Authorize(Roles = $"{UserRoles.Admin},{UserRoles.Lecturer}")]
-    public IActionResult Create(int courseId = 1)
+    public IActionResult Create(int courseId)
     {
         return View(new AssignmentCreateViewModel { CourseId = courseId });
     }
@@ -52,13 +82,34 @@ public class AssignmentController : Controller
     [HttpPost]
     [Authorize(Roles = $"{UserRoles.Admin},{UserRoles.Lecturer}")]
     [ValidateAntiForgeryToken]
-    public IActionResult Create(AssignmentCreateViewModel model)
+    public async Task<IActionResult> Create(AssignmentCreateViewModel model)
     {
         if (!ModelState.IsValid)
         {
             return View(model);
         }
 
-        return RedirectToAction(nameof(Index), new { courseId = model.CourseId });
+        var assignment = new Assignment
+        {
+            CourseId = model.CourseId,
+            Title = model.Title,
+            Description = model.Description,
+            DueDate = model.DueDate,
+            TotalMarks = model.TotalMarks,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        try
+        {
+            _db.Assignments.Add(assignment);
+            await _db.SaveChangesAsync();
+        }
+        catch (DbUpdateException)
+        {
+            TempData["ErrorMessage"] = "Assignment creation failed. Please try again.";
+            return View(model);
+        }
+
+        return RedirectToAction(nameof(ByCourse), new { courseId = model.CourseId });
     }
 }

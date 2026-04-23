@@ -1,0 +1,92 @@
+@model IEnumerable<ILOWLearningSystem.Web.Models.Submission>
+@{
+    ViewData["Title"] = "My Submissions";
+}
+
+<div class="mb-5">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="display-5 fw-bold mb-2">My Submission History</h1>
+            <p class="text-muted lead mb-0">Track your progress and feedback across all courses.</p>
+        </div>
+        <a asp-controller="Student" asp-action="Dashboard" class="premium-btn premium-btn-outline">
+            <i class="fa-solid fa-table-columns me-2"></i> Dashboard
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="premium-card p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="px-4 py-3 border-0">Assignment</th>
+                            <th class="px-4 py-3 border-0">Course</th>
+                            <th class="px-4 py-3 border-0">Submitted Date</th>
+                            <th class="px-4 py-3 border-0 text-center">Status</th>
+                            <th class="px-4 py-3 border-0 text-center">Grade</th>
+                            <th class="px-4 py-3 border-0 text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Any())
+                        {
+                            @foreach (var submission in Model)
+                            {
+                                <tr>
+                                    <td class="px-4 py-3 align-middle">
+                                        <div class="fw-bold">@submission.Assignment?.Title</div>
+                                        @if (!string.IsNullOrEmpty(submission.FilePath))
+                                        {
+                                            <a href="/@submission.FilePath" target="_blank" class="small text-primary text-decoration-none">
+                                                <i class="fa-solid fa-paperclip me-1"></i> View Attachment
+                                            </a>
+                                        }
+                                    </td>
+                                    <td class="px-4 py-3 align-middle text-muted">@submission.Assignment?.Course?.Title</td>
+                                    <td class="px-4 py-3 align-middle">
+                                        <div>@submission.SubmittedAt.ToString("MMM dd, yyyy")</div>
+                                        <div class="small text-muted">@submission.SubmittedAt.ToString("HH:mm")</div>
+                                    </td>
+                                    <td class="px-4 py-3 align-middle text-center">
+                                        <span class="status-badge status-@submission.Status.Replace(" ", "-").ToLower()">@submission.Status</span>
+                                    </td>
+                                    <td class="px-4 py-3 align-middle text-center">
+                                        @if (submission.Score.HasValue)
+                                        {
+                                            <span class="fw-bold text-success">@submission.Score / @submission.Assignment?.TotalMarks</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted small">Pending</span>
+                                        }
+                                    </td>
+                                    <td class="px-4 py-3 align-middle text-end">
+                                        <a asp-controller="Assignment" asp-action="Details" asp-route-id="@submission.AssignmentId" class="premium-btn premium-btn-outline btn-sm">
+                                            View Details
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center py-5">
+                                    <div class="py-4">
+                                        <i class="fa-solid fa-inbox text-muted mb-3" style="font-size: 3rem;"></i>
+                                        <h4 class="text-muted">No submissions yet</h4>
+                                        <p class="text-muted mb-4">You haven't submitted any assignments yet.</p>
+                                        <a asp-controller="Course" asp-action="Index" class="premium-btn premium-btn-primary">Browse Courses</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

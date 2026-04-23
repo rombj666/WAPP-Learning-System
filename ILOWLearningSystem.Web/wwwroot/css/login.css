@@ -1,4 +1,4 @@
-﻿
+
 :root {
     --ilow-bg: #f4f7fb;
     --ilow-surface: rgba(255, 255, 255, 0.78);
@@ -407,9 +407,9 @@ body {
     backdrop-filter: blur(14px);
     display: flex;
     flex-direction: column;
-    transition: all 0.28s ease;
     position: relative;
     overflow: hidden;
+    cursor: default;
 }
 
     .feature-card::before {
@@ -418,18 +418,7 @@ body {
         inset: 0;
         background: linear-gradient(135deg, rgba(79, 70, 229, 0.04), rgba(59, 130, 246, 0.01));
         opacity: 0;
-        transition: opacity 0.28s ease;
     }
-
-    .feature-card:hover {
-        transform: translateY(-6px);
-        box-shadow: 0 24px 50px rgba(15, 23, 42, 0.12);
-        border-color: rgba(79, 70, 229, 0.18);
-    }
-
-        .feature-card:hover::before {
-            opacity: 1;
-        }
 
 .feature-icon,
 .feature-text,

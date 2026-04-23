@@ -1,23 +1,76 @@
+@model IEnumerable<ILOWLearningSystem.Web.Models.Course>
 @{
-    ViewData["Title"] = "Course List";
+    ViewData["Title"] = "Courses";
+    var enrolledIds = ViewBag.EnrolledCourseIds as List<int> ?? new List<int>();
 }
 
-<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-    <h1 class="h4 ilow-page-title m-0">Course List</h1>
-    <div class="d-flex gap-2">
-        <a class="btn btn-sm btn-outline-secondary" asp-controller="Admin" asp-action="ManageCourses">Manage Courses</a>
-        <a class="btn btn-sm btn-primary" asp-controller="Course" asp-action="Create">Create Course</a>
+<div class="mb-5">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h1 class="display-5 mb-2">Explore Courses</h1>
+            <p class="text-muted lead">Find the right materials to support your learning journey.</p>
+        </div>
+        <div class="col-md-4 text-md-end">
+            @if (User.IsInRole("Admin") || User.IsInRole("Lecturer"))
+            {
+                <a asp-action="Create" class="premium-btn premium-btn-primary">
+                    <i class="fa-solid fa-plus"></i> Create New Course
+                </a>
+            }
+        </div>
     </div>
 </div>
 
-<div class="p-4 bg-white ilow-card">
-    <p class="text-muted mb-3">Placeholder list. Later this loads from MySQL via AppDbContext.</p>
-    <div class="list-group">
-        <a class="list-group-item list-group-item-action" asp-controller="Course" asp-action="Details" asp-route-id="1">
-            Course #1 - Introduction to ILOW
-        </a>
-        <a class="list-group-item list-group-item-action" asp-controller="Course" asp-action="Details" asp-route-id="2">
-            Course #2 - Placeholder
-        </a>
-    </div>
+<div class="row g-4">
+    @if (Model.Any())
+    {
+        @foreach (var course in Model)
+        {
+            var isEnrolled = enrolledIds.Contains(course.CourseId);
+            <div class="col-md-6 col-lg-4">
+                <div class="premium-card course-card">
+                    <div class="course-image">
+                        <i class="fa-solid fa-book-open"></i>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="badge bg-soft-primary text-primary px-3 rounded-pill">@course.Category</span>
+                        @if (isEnrolled)
+                        {
+                            <span class="badge bg-success text-white px-3 rounded-pill">
+                                <i class="fa-solid fa-check me-1"></i> Enrolled
+                            </span>
+                        }
+                    </div>
+                    <h3 class="h5 mb-2">@course.Title</h3>
+                    <p class="text-muted small mb-4 line-clamp-3">@(course.Description ?? "No description available.")</p>
+                    
+                    <div class="mt-auto">
+                        <a asp-action="Details" asp-route-id="@course.CourseId" class="premium-btn premium-btn-primary w-100 justify-content-center">
+                            View Course Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="col-12">
+            <div class="premium-card text-center py-5">
+                <i class="fa-solid fa-magnifying-glass text-muted mb-3" style="font-size: 3rem;"></i>
+                <h4 class="text-muted">No courses found</h4>
+                <p class="text-muted">Check back later for new learning materials.</p>
+            </div>
+        </div>
+    }
 </div>
+
+<style>
+    .bg-soft-primary { background: rgba(79, 70, 229, 0.1); }
+    .line-clamp-3 {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+</style>

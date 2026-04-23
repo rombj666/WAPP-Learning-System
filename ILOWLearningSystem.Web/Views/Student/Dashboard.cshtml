@@ -1,41 +1,136 @@
+@model ILOWLearningSystem.Web.Models.StudentDashboardViewModel
 @{
     ViewData["Title"] = "Student Dashboard";
 }
 
-<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-    <h1 class="h4 ilow-page-title m-0">Student Dashboard</h1>
-    <div class="text-muted small">Placeholder dashboard</div>
+<div class="dashboard-hero mb-4">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h1 class="display-5 fw-bold mb-2">Welcome back, @Model.StudentName!</h1>
+            <p class="lead mb-0 opacity-75">Ready to continue your learning journey today?</p>
+        </div>
+        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+            <a asp-controller="Course" asp-action="Index" class="premium-btn btn-light text-primary">
+                <i class="fa-solid fa-magnifying-glass me-2"></i> Browse Courses
+            </a>
+        </div>
+    </div>
 </div>
 
 <div class="row g-4">
+    <!-- Enrolled Courses -->
     <div class="col-12 col-lg-8">
-        <div class="p-4 bg-white ilow-card">
-            <div class="fw-semibold mb-2">My Courses</div>
-            <p class="text-muted mb-3">Shows enrolled courses (placeholder).</p>
-            <div class="d-flex flex-wrap gap-2">
-                <a class="btn btn-sm btn-outline-primary" asp-controller="Course" asp-action="Details" asp-route-id="1">Open Course #1</a>
-                <a class="btn btn-sm btn-outline-secondary" asp-controller="Course" asp-action="Index">Browse Courses</a>
-            </div>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="h4 fw-bold mb-0">My Enrolled Courses</h2>
         </div>
-
-        <div class="p-4 bg-white ilow-card mt-4">
-            <div class="fw-semibold mb-2">Upcoming Assignments</div>
-            <p class="text-muted mb-3">Lists due assignments (placeholder).</p>
-            <a class="btn btn-sm btn-outline-primary" asp-controller="Assignment" asp-action="Details" asp-route-id="1">Assignment #1</a>
+        
+        <div class="row g-3">
+            @if (Model.EnrolledCourses.Any())
+            {
+                @foreach (var course in Model.EnrolledCourses)
+                {
+                    <div class="col-md-6">
+                        <div class="premium-card h-100">
+                            @if (!string.IsNullOrEmpty(course.ImagePath))
+                            {
+                                <img src="@course.ImagePath" class="card-img-top course-card-img" alt="@course.Title">
+                            }
+                            <div class="p-4">
+                                <h3 class="h5 fw-bold mb-2">@course.Title</h3>
+                                <p class="text-muted small mb-3 text-truncate-2">@course.Description</p>
+                                <div class="d-flex justify-content-between align-items-center mt-auto">
+                                    <span class="course-meta"><i class="fa-solid fa-user-tie me-1"></i> @course.LecturerName</span>
+                                    <a asp-controller="Course" asp-action="Details" asp-route-id="@course.CourseId" class="premium-btn premium-btn-outline btn-sm">
+                                        View Course
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="col-12">
+                    <div class="premium-card p-5 text-center bg-white">
+                        <div class="py-4">
+                            <i class="fa-solid fa-book-open text-muted mb-3" style="font-size: 3rem;"></i>
+                            <h4 class="text-muted">No courses enrolled yet</h4>
+                            <p class="text-muted mb-4">Start your journey by exploring our available courses.</p>
+                            <a asp-controller="Course" asp-action="Index" class="premium-btn premium-btn-primary">Explore Courses</a>
+                        </div>
+                    </div>
+                </div>
+            }
         </div>
     </div>
 
+    <!-- Right Column: Assignments & Submissions -->
     <div class="col-12 col-lg-4">
-        <div class="p-4 bg-white ilow-card">
-            <div class="fw-semibold mb-2">Daily Tasks</div>
-            <p class="text-muted mb-3">Member 2 module placeholder.</p>
-            <button class="btn btn-sm btn-outline-secondary" type="button" disabled>Add Task (placeholder)</button>
+        <!-- Upcoming Assignments -->
+        <div class="mb-4">
+            <h2 class="h4 fw-bold mb-3">Upcoming Assignments</h2>
+            <div class="premium-card p-3">
+                @if (Model.UpcomingAssignments.Any())
+                {
+                    <div class="list-group list-group-flush">
+                        @foreach (var assignment in Model.UpcomingAssignments)
+                        {
+                            <a asp-controller="Assignment" asp-action="Details" asp-route-id="@assignment.AssignmentId" class="list-group-item list-group-item-action border-0 px-0 py-3">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="fw-bold mb-1 text-primary">@assignment.Title</h6>
+                                    <small class="text-danger fw-bold">@assignment.DueDate?.ToString("MMM dd")</small>
+                                </div>
+                                <p class="mb-1 text-muted small">@assignment.Course?.Title</p>
+                            </a>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4">
+                        <p class="text-muted mb-0 small">No upcoming assignments.</p>
+                    </div>
+                }
+            </div>
         </div>
 
-        <div class="p-4 bg-white ilow-card mt-4">
-            <div class="fw-semibold mb-2">Stress Tracker</div>
-            <p class="text-muted mb-3">Member 4 module placeholder.</p>
-            <button class="btn btn-sm btn-outline-secondary" type="button" disabled>Record Stress (placeholder)</button>
+        <!-- Recent Submissions -->
+        <div>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="h4 fw-bold mb-0">Recent Submissions</h2>
+            </div>
+            <div class="premium-card p-3">
+                @if (Model.RecentSubmissions.Any())
+                {
+                    <div class="list-group list-group-flush">
+                        @foreach (var submission in Model.RecentSubmissions)
+                        {
+                            <div class="list-group-item border-0 px-0 py-3">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <h6 class="fw-bold mb-0">@submission.Assignment?.Title</h6>
+                                    <span class="status-badge status-@submission.Status.Replace(" ", "-").ToLower() px-2 py-1" style="font-size: 0.7rem;">
+                                        @submission.Status
+                                    </span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <small class="text-muted">@submission.SubmittedAt.ToString("MMM dd, HH:mm")</small>
+                                    @if (submission.Score.HasValue)
+                                    {
+                                        <small class="fw-bold text-success">@submission.Score / 100</small>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4">
+                        <p class="text-muted mb-0 small">No recent submissions.</p>
+                    </div>
+                }
+            </div>
         </div>
     </div>
 </div>

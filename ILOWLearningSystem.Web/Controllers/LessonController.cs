@@ -1,32 +1,56 @@
+using ILOWLearningSystem.Web.Data;
 using ILOWLearningSystem.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ILOWLearningSystem.Web.Controllers;
 
-// Member 3: Lesson & Assignment Module + AI-Generated Flashcard Revision Tool
 [Authorize]
 public class LessonController : Controller
 {
-    [HttpGet]
-    [AllowAnonymous]
-    public IActionResult Index(int? courseId = null)
+    private readonly AppDbContext _db;
+
+    public LessonController(AppDbContext db)
     {
-        ViewData["CourseId"] = courseId;
-        return View();
+        _db = db;
     }
 
     [HttpGet]
     [AllowAnonymous]
-    public IActionResult Details(int id = 1)
+    public async Task<IActionResult> ByCourse(int courseId)
     {
-        ViewData["LessonId"] = id;
-        return View();
+        var course = await _db.Courses
+            .Include(c => c.Lessons)
+            .FirstOrDefaultAsync(c => c.CourseId == courseId);
+
+        if (course == null)
+        {
+            return NotFound();
+        }
+
+        return View(course);
+    }
+
+    [HttpGet]
+    [AllowAnonymous]
+    public async Task<IActionResult> Details(int id)
+    {
+        var lesson = await _db.Lessons
+            .Include(l => l.Course)
+            .FirstOrDefaultAsync(l => l.LessonId == id);
+
+        if (lesson == null)
+        {
+            return NotFound();
+        }
+
+        return View(lesson);
     }
 
     [HttpGet]
     [Authorize(Roles = $"{UserRoles.Admin},{UserRoles.Lecturer}")]
-    public IActionResult Create(int courseId = 1)
+    public IActionResult Create(int courseId)
     {
         return View(new LessonCreateViewModel { CourseId = courseId });
     }
@@ -34,13 +58,24 @@ public class LessonController : Controller
     [HttpPost]
     [Authorize(Roles = $"{UserRoles.Admin},{UserRoles.Lecturer}")]
     [ValidateAntiForgeryToken]
-    public IActionResult Create(LessonCreateViewModel model)
+    public async Task<IActionResult> Create(LessonCreateViewModel model)
     {
         if (!ModelState.IsValid)
         {
             return View(model);
         }
 
-        return RedirectToAction(nameof(Index), new { courseId = model.CourseId });
+        var lesson = new Lesson
+        {
+            CourseId = model.CourseId,
+            Title = model.Title,
+            Content = model.Content,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _db.Lessons.Add(lesson);
+        await _db.SaveChangesAsync();
+
+        return RedirectToAction(nameof(ByCourse), new { courseId = model.CourseId });
     }
 }

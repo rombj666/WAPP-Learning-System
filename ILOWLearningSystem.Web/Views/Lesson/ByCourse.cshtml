@@ -1,0 +1,74 @@
+@model IEnumerable<ILOWLearningSystem.Web.Models.Lesson>
+@{
+    var course = ViewBag.Course as ILOWLearningSystem.Web.Models.Course;
+    ViewData["Title"] = $"Lessons - {course?.Title}";
+}
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-controller="Student" asp-action="Dashboard" class="text-primary text-decoration-none">Dashboard</a></li>
+                <li class="breadcrumb-item"><a asp-controller="Course" asp-action="Details" asp-route-id="@course?.CourseId" class="text-primary text-decoration-none">@course?.Title</a></li>
+                <li class="breadcrumb-item active">Lessons</li>
+            </ol>
+        </nav>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h2 fw-bold mb-0">Course Lessons</h1>
+            <span class="badge bg-primary rounded-pill px-3 py-2">@Model.Count() Lessons</span>
+        </div>
+
+        <div class="premium-card p-0">
+            <div class="list-group list-group-flush">
+                @if (Model.Any())
+                {
+                    int index = 1;
+                    foreach (var lesson in Model.OrderBy(l => l.LessonId))
+                    {
+                        <div class="list-group-item p-4 border-0 border-bottom">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-4 fw-bold" style="width: 45px; height: 45px; flex-shrink: 0;">
+                                    @index
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h5 class="fw-bold mb-1">@lesson.Title</h5>
+                                    <p class="text-muted small mb-0">Part of the @course?.Title curriculum</p>
+                                </div>
+                                <a asp-controller="Lesson" asp-action="Details" asp-route-id="@lesson.LessonId" class="premium-btn premium-btn-primary btn-sm px-4">
+                                    Start Lesson
+                                </a>
+                            </div>
+                        </div>
+                        index++;
+                    }
+                }
+                else
+                {
+                    <div class="p-5 text-center">
+                        <i class="fa-solid fa-book-open text-muted mb-3" style="font-size: 3rem;"></i>
+                        <h4 class="text-muted">No lessons yet</h4>
+                        <p class="text-muted mb-0">Check back later for course content.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="premium-card p-4 mb-4">
+            <h3 class="h5 fw-bold mb-4">Navigation</h3>
+            <div class="nav-btn-list">
+                <a asp-controller="Course" asp-action="Details" asp-route-id="@course?.CourseId" class="nav-btn-item">
+                    <i class="fa-solid fa-circle-info"></i> Course Overview
+                </a>
+                <a asp-controller="Assignment" asp-action="ByCourse" asp-route-courseId="@course?.CourseId" class="nav-btn-item">
+                    <i class="fa-solid fa-file-signature"></i> View Assignments
+                </a>
+                <a asp-controller="Student" asp-action="Dashboard" class="nav-btn-item">
+                    <i class="fa-solid fa-table-columns"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

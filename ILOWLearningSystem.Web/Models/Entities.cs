@@ -187,6 +187,9 @@ public class Submission
     [MaxLength(1000)]
     public string? FilePath { get; set; }
 
+    [MaxLength(4000)]
+    public string? SubmissionText { get; set; }
+
     public DateTime SubmittedAt { get; set; }
 
     [MaxLength(50)]

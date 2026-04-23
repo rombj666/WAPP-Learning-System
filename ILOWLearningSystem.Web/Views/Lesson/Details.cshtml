@@ -1,20 +1,82 @@
+@model ILOWLearningSystem.Web.Models.Lesson
 @{
-    ViewData["Title"] = "Lesson Details";
-    var lessonId = (int)(ViewData["LessonId"] ?? 0);
+    ViewData["Title"] = Model.Title;
 }
 
-<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-    <h1 class="h4 ilow-page-title m-0">Lesson Details</h1>
-    <a class="btn btn-sm btn-outline-secondary" asp-controller="Lesson" asp-action="Index">Back to list</a>
-</div>
+<div class="row justify-content-center">
+    <div class="col-lg-10 col-xl-8">
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-controller="Student" asp-action="Dashboard" class="text-primary text-decoration-none">Dashboard</a></li>
+                <li class="breadcrumb-item"><a asp-controller="Course" asp-action="Details" asp-route-id="@Model.CourseId" class="text-primary text-decoration-none">@Model.Course?.Title</a></li>
+                <li class="breadcrumb-item active">@Model.Title</li>
+            </ol>
+        </nav>
 
-<div class="p-4 bg-white ilow-card">
-    <div class="text-muted small mb-2">LessonId: @lessonId</div>
-    <div class="fw-semibold mb-2">Title (placeholder)</div>
-    <p class="text-muted mb-3">Lesson content, slides, video, and flashcards will appear here.</p>
+        <div class="mb-5">
+            <h1 class="display-4 fw-bold mb-2">@Model.Title</h1>
+            <p class="text-muted lead mb-0">Course: @Model.Course?.Title</p>
+        </div>
 
-    <div class="d-flex flex-wrap gap-2">
-        <a class="btn btn-sm btn-outline-primary" asp-controller="Course" asp-action="Details" asp-route-id="1">Back to Course</a>
-        <button class="btn btn-sm btn-outline-secondary" type="button" disabled>Generate Flashcards (placeholder)</button>
+        <div class="premium-card p-4 p-md-5 mb-5">
+            <div class="lesson-content">
+                @if (!string.IsNullOrEmpty(Model.Content))
+                {
+                    @Html.Raw(Model.Content)
+                }
+                else
+                {
+                    <div class="text-center py-5">
+                        <i class="fa-solid fa-file-circle-exclamation text-muted mb-3" style="font-size: 3rem;"></i>
+                        <h4 class="text-muted">No content available</h4>
+                        <p class="text-muted mb-0">This lesson doesn't have any written content yet.</p>
+                    </div>
+                }
+            </div>
+            
+            @if (!string.IsNullOrEmpty(Model.SlidePath))
+            {
+                <div class="mt-5 pt-5 border-top">
+                    <h4 class="fw-bold mb-4">Supporting Materials</h4>
+                    <div class="d-flex align-items-center p-3 bg-light rounded-3">
+                        <i class="fa-solid fa-file-pdf text-danger me-3 fs-3"></i>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-0 fw-bold">Lesson Slides</h6>
+                            <small class="text-muted">Download for offline study</small>
+                        </div>
+                        <a href="@Model.SlidePath" target="_blank" class="premium-btn premium-btn-outline btn-sm">
+                            <i class="fa-solid fa-download me-2"></i> Download
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-5">
+            <a asp-controller="Course" asp-action="Details" asp-route-id="@Model.CourseId" class="premium-btn premium-btn-outline">
+                <i class="fa-solid fa-arrow-left me-2"></i> Back to Lessons
+            </a>
+            <div class="d-flex gap-2">
+                <a asp-controller="Assignment" asp-action="ByCourse" asp-route-courseId="@Model.CourseId" class="premium-btn premium-btn-primary">
+                    View Assignments <i class="fa-solid fa-arrow-right ms-2"></i>
+                </a>
+            </div>
+        </div>
     </div>
 </div>
+
+<style>
+    .lesson-content {
+        font-size: 1.15rem;
+        line-height: 1.8;
+        color: #333;
+    }
+    .lesson-content h1, .lesson-content h2, .lesson-content h3 {
+        font-weight: 700;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+    }
+    .lesson-content p {
+        margin-bottom: 1.5rem;
+    }
+</style>
