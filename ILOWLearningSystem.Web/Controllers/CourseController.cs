@@ -17,10 +17,22 @@ public class CourseController : Controller
         _db = db;
     }
 
+    // ========== 只有一个 GetCurrentUserId ==========
     private int GetCurrentUserId()
     {
-        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        return int.TryParse(userIdStr, out var id) ? id : 0;
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (!string.IsNullOrEmpty(userIdClaim) && int.TryParse(userIdClaim, out var userId))
+        {
+            return userId;
+        }
+
+        var email = User.Identity?.Name;
+        if (!string.IsNullOrEmpty(email))
+        {
+            return _db.Users.Where(u => u.Email == email).Select(u => u.UserId).FirstOrDefault();
+        }
+
+        return 0;
     }
 
     [HttpGet]
@@ -28,8 +40,7 @@ public class CourseController : Controller
     public async Task<IActionResult> Index()
     {
         var courses = await _db.Courses.ToListAsync();
-        
-        // If logged in as student, mark which ones they are enrolled in
+
         if (User.Identity?.IsAuthenticated ?? false)
         {
             var userId = GetCurrentUserId();
@@ -45,33 +56,26 @@ public class CourseController : Controller
 
     [HttpGet]
     [AllowAnonymous]
-    public async Task<IActionResult> Details(int id)
+    public IActionResult Details(int id)
     {
-        var course = await _db.Courses
+        var course = _db.Courses
             .Include(c => c.Lessons)
             .Include(c => c.Assignments)
-            .FirstOrDefaultAsync(c => c.CourseId == id);
+            .FirstOrDefault(c => c.CourseId == id);
 
         if (course == null)
         {
             return NotFound();
         }
 
-        // Check enrollment if logged in
-        if (User.Identity?.IsAuthenticated ?? false)
+        if (User.IsInRole("Admin") || User.IsInRole("Lecturer"))
+        {
+            ViewBag.IsEnrolled = true;
+        }
+        else
         {
             var userId = GetCurrentUserId();
-            var isEnrolled = await _db.Enrollments
-                .AnyAsync(e => e.UserId == userId && e.CourseId == id);
-            ViewBag.IsEnrolled = isEnrolled;
-
-            if (isEnrolled)
-            {
-                var submissions = await _db.Submissions
-                    .Where(s => s.UserId == userId && course.Assignments.Select(a => a.AssignmentId).Contains(s.AssignmentId))
-                    .ToDictionaryAsync(s => s.AssignmentId, s => s.Status);
-                ViewBag.Submissions = submissions;
-            }
+            ViewBag.IsEnrolled = _db.Enrollments.Any(e => e.UserId == userId && e.CourseId == id && e.Status == "Active");
         }
 
         return View(course);

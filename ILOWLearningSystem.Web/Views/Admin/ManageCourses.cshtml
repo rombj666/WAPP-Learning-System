@@ -1,60 +1,250 @@
-@model ILOWLearningSystem.Web.Models.CourseCreateViewModel
+@model List<ILOWLearningSystem.Web.Models.Course>
 @{
     ViewData["Title"] = "Manage Courses";
 }
 
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
     <h1 class="h4 ilow-page-title m-0">Manage Courses</h1>
-    <a class="btn btn-sm btn-outline-secondary" asp-controller="Admin" asp-action="Dashboard">Back to dashboard</a>
+    <div>
+        <a class="btn btn-sm btn-outline-secondary" asp-action="Dashboard">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+        <button class="btn btn-sm btn-primary ms-2" data-bs-toggle="modal" data-bs-target="#addCourseModal">
+            <i class="bi bi-plus-lg"></i> Add Course
+        </button>
+    </div>
 </div>
 
-<div class="row g-4">
-    <div class="col-12 col-lg-7">
-        <div class="p-4 bg-white ilow-card">
-            <div class="fw-semibold mb-2">Existing Courses</div>
-            <p class="text-muted mb-3">Placeholder list. Later this loads from MySQL.</p>
-            <div class="list-group">
-                <a class="list-group-item list-group-item-action" asp-controller="Course" asp-action="Details" asp-route-id="1">Course #1 - Introduction to ILOW</a>
-                <a class="list-group-item list-group-item-action" asp-controller="Course" asp-action="Details" asp-route-id="2">Course #2 - Placeholder</a>
-            </div>
-        </div>
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["Message"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
-    <div class="col-12 col-lg-5">
-        <div class="p-4 bg-white ilow-card">
-            <div class="fw-semibold mb-3">Create Course (placeholder)</div>
-            <form method="post" asp-action="ManageCourses">
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="ilow-card bg-white p-3">
+    <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+            <tr>
+                <th>#</th>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Lecturer</th>
+                <th>Created At</th>
+                <th class="text-end">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.Count == 0)
+            {
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-4">No courses found.</td>
+                </tr>
+            }
+            else
+            {
+                int index = 1;
+                foreach (var course in Model)
+                {
+                    <tr>
+                        <td>@index</td>
+                        <td class="fw-semibold">@course.Title</td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(course.Category))
+                            {
+                                <span class="badge bg-info text-dark">@course.Category</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">—</span>
+                            }
+                        </td>
+                        <td>@(course.LecturerName ?? "—")</td>
+                        <td>@course.CreatedAt.ToString("dd MMM yyyy")</td>
+                        <td class="text-end">
+                            @*Edit Button*@
+                            <button class="btn btn-sm btn-outline-warning me-1"
+                                    data-bs-toggle="modal" data-bs-target="#editCourseModal"
+                                    data-id="@course.CourseId"
+                                    data-title="@course.Title"
+                                    data-description="@course.Description"
+                                    data-category="@course.Category"
+                                    data-lecturer="@course.LecturerName"
+                                    data-image="@course.ImagePath">
+                                <i class="bi bi-pencil"></i> Edit
+                            </button>
+                            @*Delete Button*@
+                            <form asp-action="DeleteCourse" method="post" class="d-inline"
+                                  onsubmit="return confirm('Delete @course.Title? This cannot be undone.');">
+                                <input type="hidden" name="id" value="@course.CourseId" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash3"></i> Delete
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    index++;
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+<div class="modal fade" id="addCourseModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form asp-action="CreateCourse" method="post" enctype="multipart/form-data">
                 @Html.AntiForgeryToken()
-
-                <div class="mb-3">
-                    <label asp-for="Title" class="form-label"></label>
-                    <input asp-for="Title" class="form-control" />
-                    <span asp-validation-for="Title" class="text-danger"></span>
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-plus-circle"></i> Add New Course</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-
-                <div class="mb-3">
-                    <label asp-for="Category" class="form-label"></label>
-                    <input asp-for="Category" class="form-control" />
-                    <span asp-validation-for="Category" class="text-danger"></span>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Title <span class="text-danger">*</span></label>
+                        <input name="Title" class="form-control" required maxlength="200" placeholder="e.g. Web Development 101" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Category</label>
+                        <select name="Category" class="form-select">
+                            <option value="">— Select Category —</option>
+                            <option>Programming</option>
+                            <option>Design</option>
+                            <option>Business</option>
+                            <option>Mathematics</option>
+                            <option>General</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Lecturer Name</label>
+                        <input name="LecturerName" class="form-control" maxlength="200" placeholder="e.g. Dr. Ali" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea name="Description" class="form-control" rows="3" maxlength="2000" placeholder="Course description..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Course Image</label>
+                        <input type="file" name="ImageFile" class="form-control" accept=".jpg,.jpeg,.png,.gif,.webp" />
+                        <div class="form-text">Accepted: JPG, JPEG, PNG, GIF, WebP. Max 5MB.</div>
+                    </div>
                 </div>
-
-                <div class="mb-3">
-                    <label asp-for="LecturerName" class="form-label"></label>
-                    <input asp-for="LecturerName" class="form-control" />
-                    <span asp-validation-for="LecturerName" class="text-danger"></span>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Add Course</button>
                 </div>
-
-                <div class="mb-3">
-                    <label asp-for="Description" class="form-label"></label>
-                    <textarea asp-for="Description" class="form-control" rows="4"></textarea>
-                    <span asp-validation-for="Description" class="text-danger"></span>
-                </div>
-
-                <button type="submit" class="btn btn-primary">Save (placeholder)</button>
             </form>
         </div>
     </div>
 </div>
 
+<div class="modal fade" id="editCourseModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form asp-action="EditCourse" method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="CourseId" id="editCourseId" />
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-pencil-square"></i> Edit Course</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Title <span class="text-danger">*</span></label>
+                        <input name="Title" id="editTitle" class="form-control" required maxlength="200" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Category</label>
+                        <select name="Category" id="editCategory" class="form-select">
+                            <option value="">— Select Category —</option>
+                            <option>Programming</option>
+                            <option>Design</option>
+                            <option>Business</option>
+                            <option>Mathematics</option>
+                            <option>General</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Lecturer Name</label>
+                        <input name="LecturerName" id="editLecturer" class="form-control" maxlength="200" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea name="Description" id="editDescription" class="form-control" rows="3" maxlength="2000"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Course Image</label>
+                        <input type="file" name="ImageFile" class="form-control" accept=".jpg,.jpeg,.png,.gif,.webp" />
+                        <div class="form-text">Leave empty to keep current image. Accepted: JPG, JPEG, PNG, GIF, WebP. Max 5MB.</div>
+                        <img id="editImagePreview" src="" class="mt-2 rounded" style="max-width: 200px; display: none;" />
+                        <button type="button" id="removeImageBtn" class="btn btn-sm btn-outline-danger mt-2" style="display:none;"
+                                onclick="document.getElementById('editRemoveImage').value='true';
+                            document.getElementById('editImagePreview').style.display='none';
+                            document.getElementById('removeImageBtn').style.display='none';">
+                            <i class="bi bi-trash3"></i> Remove Current Image
+                        </button>
+                        <input type="hidden" name="RemoveImage" id="editRemoveImage" value="false" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning"><i class="bi bi-check-lg"></i> Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var editModal = document.getElementById('editCourseModal');
+            if (editModal) {
+                editModal.addEventListener('show.bs.modal', function (event) {
+                    var button = event.relatedTarget;
+                    document.getElementById('editCourseId').value = button.getAttribute('data-id');
+                    document.getElementById('editTitle').value = button.getAttribute('data-title') || '';
+                    document.getElementById('editCategory').value = button.getAttribute('data-category') || '';
+                    document.getElementById('editLecturer').value = button.getAttribute('data-lecturer') || '';
+                    document.getElementById('editDescription').value = button.getAttribute('data-description') || '';
+
+                    var imagePath = button.getAttribute('data-image');
+                    var preview = document.getElementById('editImagePreview');
+                    if (imagePath && imagePath !== '') {
+                        preview.src = imagePath;
+                        preview.style.display = 'block';
+                    } else {
+                        preview.style.display = 'none';
+                    }
+                    var removeBtn = document.getElementById('removeImageBtn');
+                    if (imagePath && imagePath !== '') {
+                        removeBtn.style.display = 'inline-block';
+                    } else {
+                        removeBtn.style.display = 'none';
+                    }
+                    document.getElementById('editRemoveImage').value = 'false';
+
+                    var fileInput = document.querySelector('#editCourseModal input[type="file"]');
+                    if (fileInput) fileInput.value = '';
+                });
+            }
+
+            if (window.location.search.includes('openAdd=true')) {
+                var addModalEl = document.getElementById('addCourseModal');
+                if (addModalEl) {
+                    var addModal = new bootstrap.Modal(addModalEl);
+                    addModal.show();
+                }
+            }
+        });
+    </script>
 }

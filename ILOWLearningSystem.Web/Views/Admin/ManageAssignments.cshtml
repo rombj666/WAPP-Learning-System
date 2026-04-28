@@ -1,62 +1,226 @@
-@model ILOWLearningSystem.Web.Models.AssignmentCreateViewModel
+@model List<ILOWLearningSystem.Web.Models.Assignment>
 @{
     ViewData["Title"] = "Manage Assignments";
+    var courses = ViewBag.Courses as List<ILOWLearningSystem.Web.Models.Course>;
 }
 
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
     <h1 class="h4 ilow-page-title m-0">Manage Assignments</h1>
-    <a class="btn btn-sm btn-outline-secondary" asp-controller="Admin" asp-action="Dashboard">Back to dashboard</a>
+    <div>
+        <a class="btn btn-sm btn-outline-secondary" asp-action="Dashboard">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+        <button class="btn btn-sm btn-primary ms-2" data-bs-toggle="modal" data-bs-target="#addAssignmentModal">
+            <i class="bi bi-plus-lg"></i> Add Assignment
+        </button>
+    </div>
 </div>
 
-<div class="row g-4">
-    <div class="col-12 col-lg-7">
-        <div class="p-4 bg-white ilow-card">
-            <div class="fw-semibold mb-2">Existing Assignments</div>
-            <p class="text-muted mb-3">Placeholder list for CourseId: @Model.CourseId.</p>
-            <div class="list-group">
-                <a class="list-group-item list-group-item-action" asp-controller="Assignment" asp-action="Details" asp-route-id="1">Assignment #1 - First Assignment</a>
-                <a class="list-group-item list-group-item-action" asp-controller="Assignment" asp-action="Details" asp-route-id="2">Assignment #2 - Placeholder</a>
-            </div>
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["Message"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="ilow-card bg-white p-3">
+    <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+            <tr>
+                <th>#</th>
+                <th>Title</th>
+                <th>Course</th>
+                <th>Due Date</th>
+                <th>Total Marks</th>
+                <th class="text-end">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.Count == 0)
+            {
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-4">No assignments found.</td>
+                </tr>
+            }
+            else
+            {
+                int index = 1;
+                foreach (var assignment in Model)
+                {
+                    <tr>
+                        <td>@index</td>
+                        <td class="fw-semibold">@assignment.Title</td>
+                        <td>
+                            <span class="badge bg-info text-dark">@(assignment.Course?.Title ?? "—")</span>
+                        </td>
+                        <td>
+                            @if (assignment.DueDate.HasValue)
+                            {
+                                <span class="@(assignment.DueDate.Value < DateTime.Now ? "text-danger" : "")">
+                                    @assignment.DueDate.Value.ToString("dd MMM yyyy")
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">No deadline</span>
+                            }
+                        </td>
+                        <td>@assignment.TotalMarks</td>
+                        <td class="text-end">
+                            <button class="btn btn-sm btn-outline-warning me-1"
+                                    data-bs-toggle="modal" data-bs-target="#editAssignmentModal"
+                                    data-id="@assignment.AssignmentId"
+                                    data-title="@assignment.Title"
+                                    data-description="@assignment.Description"
+                                    data-courseid="@assignment.CourseId"
+                                    data-duedate="@(assignment.DueDate?.ToString("yyyy-MM-ddTHH:mm"))"
+                                    data-totalmarks="@assignment.TotalMarks">
+                                <i class="bi bi-pencil"></i> Edit
+                            </button>
+                            <form asp-action="DeleteAssignment" method="post" class="d-inline"
+                                  onsubmit="return confirm('Delete @assignment.Title?');">
+                                <input type="hidden" name="id" value="@assignment.AssignmentId" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash3"></i> Delete
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    index++;
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+@*ADD MODAL*@
+<div class="modal fade" id="addAssignmentModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form asp-action="CreateAssignment" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-plus-circle"></i> Add New Assignment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Title <span class="text-danger">*</span></label>
+                        <input name="Title" class="form-control" required maxlength="200" placeholder="e.g. Assignment 1: Essay" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Course <span class="text-danger">*</span></label>
+                        <select name="CourseId" class="form-select" required>
+                            <option value="">— Select Course —</option>
+                            @if (courses != null)
+                            {
+                                foreach (var c in courses)
+                                {
+                                    <option value="@c.CourseId">@c.Title</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea name="Description" class="form-control" rows="4" maxlength="4000" placeholder="Assignment instructions..."></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Due Date</label>
+                            <input type="datetime-local" name="DueDate" class="form-control" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Total Marks <span class="text-danger">*</span></label>
+                            <input type="number" name="TotalMarks" class="form-control" required min="1" max="1000" value="100" />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Add Assignment</button>
+                </div>
+            </form>
         </div>
     </div>
-    <div class="col-12 col-lg-5">
-        <div class="p-4 bg-white ilow-card">
-            <div class="fw-semibold mb-3">Create Assignment (placeholder)</div>
-            <form method="post" asp-action="ManageAssignments">
+</div>
+
+@*EDIT MODAL*@
+<div class="modal fade" id="editAssignmentModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form asp-action="EditAssignment" method="post">
                 @Html.AntiForgeryToken()
-                <input asp-for="CourseId" type="hidden" />
-
-                <div class="mb-3">
-                    <label asp-for="Title" class="form-label"></label>
-                    <input asp-for="Title" class="form-control" />
-                    <span asp-validation-for="Title" class="text-danger"></span>
+                <input type="hidden" name="AssignmentId" id="editAssignmentId" />
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-pencil-square"></i> Edit Assignment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-
-                <div class="mb-3">
-                    <label asp-for="Description" class="form-label"></label>
-                    <textarea asp-for="Description" class="form-control" rows="5"></textarea>
-                    <span asp-validation-for="Description" class="text-danger"></span>
-                </div>
-
-                <div class="row g-3">
-                    <div class="col-12 col-md-6">
-                        <label asp-for="DueDate" class="form-label"></label>
-                        <input asp-for="DueDate" class="form-control" type="datetime-local" />
-                        <span asp-validation-for="DueDate" class="text-danger"></span>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Title <span class="text-danger">*</span></label>
+                        <input name="Title" id="editAssignmentTitle" class="form-control" required maxlength="200" />
                     </div>
-                    <div class="col-12 col-md-6">
-                        <label asp-for="TotalMarks" class="form-label"></label>
-                        <input asp-for="TotalMarks" class="form-control" type="number" min="0" />
-                        <span asp-validation-for="TotalMarks" class="text-danger"></span>
+                    <div class="mb-3">
+                        <label class="form-label">Course <span class="text-danger">*</span></label>
+                        <select name="CourseId" id="editAssignmentCourseId" class="form-select" required>
+                            <option value="">— Select Course —</option>
+                            @if (courses != null)
+                            {
+                                foreach (var c in courses)
+                                {
+                                    <option value="@c.CourseId">@c.Title</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea name="Description" id="editAssignmentDescription" class="form-control" rows="4" maxlength="4000"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Due Date</label>
+                            <input type="datetime-local" name="DueDate" id="editAssignmentDueDate" class="form-control" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Total Marks <span class="text-danger">*</span></label>
+                            <input type="number" name="TotalMarks" id="editAssignmentTotalMarks" class="form-control" required min="1" max="1000" />
+                        </div>
                     </div>
                 </div>
-
-                <button type="submit" class="btn btn-primary mt-4">Save (placeholder)</button>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning"><i class="bi bi-check-lg"></i> Save Changes</button>
+                </div>
             </form>
         </div>
     </div>
 </div>
 
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var editModal = document.getElementById('editAssignmentModal');
+            if (editModal) {
+                editModal.addEventListener('show.bs.modal', function (event) {
+                    var button = event.relatedTarget;
+                    document.getElementById('editAssignmentId').value = button.getAttribute('data-id');
+                    document.getElementById('editAssignmentTitle').value = button.getAttribute('data-title') || '';
+                    document.getElementById('editAssignmentCourseId').value = button.getAttribute('data-courseid') || '';
+                    document.getElementById('editAssignmentDescription').value = button.getAttribute('data-description') || '';
+                    document.getElementById('editAssignmentDueDate').value = button.getAttribute('data-duedate') || '';
+                    document.getElementById('editAssignmentTotalMarks').value = button.getAttribute('data-totalmarks') || '100';
+                });
+            }
+        });
+    </script>
 }

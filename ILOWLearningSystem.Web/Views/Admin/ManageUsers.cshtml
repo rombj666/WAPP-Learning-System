@@ -1,11 +1,95 @@
+@model List<ILOWLearningSystem.Web.Models.User>
 @{
     ViewData["Title"] = "Manage Users";
 }
 
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
     <h1 class="h4 ilow-page-title m-0">Manage Users</h1>
-    <a class="btn btn-sm btn-outline-secondary" asp-controller="Admin" asp-action="Dashboard">Back to dashboard</a>
+    <div>
+        <a class="btn btn-sm btn-outline-secondary" asp-controller="Admin" asp-action="Dashboard">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
 </div>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["Message"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="ilow-card bg-white p-3">
+    <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+            <tr>
+                <th>#</th>
+                <th>Full Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Created At</th>
+                <th class="text-end">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.Count == 0)
+            {
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-4">No users found.</td>
+                </tr>
+            }
+            else
+            {
+                int index = 1;
+                foreach (var user in Model)
+                {
+                    <tr>
+                        <td>@index</td>
+                        <td class="fw-semibold">@user.FullName</td>
+                        <td>@user.Email</td>
+                        <td>
+                            <span class="badge @GetRoleBadge(user.Role)">
+                                @user.Role
+                            </span>
+                        </td>
+                        <td>@user.CreatedAt.ToString("dd MMM yyyy")</td>
+                        <td class="text-end">
+                            <form asp-action="DeleteUser" method="post" class="d-inline"
+                                  onsubmit="return confirm('Delete @user.FullName?');">
+                                <input type="hidden" name="id" value="@user.UserId" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash3"></i> Delete
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    index++;
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+@functions {
+    string GetRoleBadge(string role)
+    {
+        return role switch
+        {
+            "Admin" => "bg-danger",
+            "Lecturer" => "bg-warning text-dark",
+            "Student" => "bg-primary",
+            _ => "bg-secondary"
+        };
+    }
+}
 
 <div class="p-4 bg-white ilow-card">
     <p class="text-muted mb-3">Placeholder list of users. Later this loads from MySQL via AppDbContext.</p>
