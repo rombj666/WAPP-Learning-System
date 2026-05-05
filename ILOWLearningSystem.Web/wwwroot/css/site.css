@@ -242,3 +242,12 @@ body {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
+
+.hover-shadow {
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+    .hover-shadow:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.1) !important;
+        transform: translateY(-2px);
+    }

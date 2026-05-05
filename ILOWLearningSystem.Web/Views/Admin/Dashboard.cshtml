@@ -1,118 +1,239 @@
 @{
-    ViewData["Title"] = "Admin Dashboard";
-    var totalUsers = ViewBag.TotalUsers ?? 0;
+    ViewData["Title"] = "Dashboard";
+    var isAdmin = ViewBag.IsAdmin ?? false;
+}
+
+@if (isAdmin)
+{
+    @* ==================== ADMIN DASHBOARD ==================== *@
+    var totalAdmins = ViewBag.TotalAdmins ?? 0;
+    var totalLecturers = ViewBag.TotalLecturers ?? 0;
+    var totalStudents = ViewBag.TotalStudents ?? 0;
+    var totalCourses = ViewBag.TotalCourses ?? 0;
+    var totalAnnouncements = ViewBag.TotalAnnouncements ?? 0;
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm border-start border-4 border-danger">
+                <div class="card-body p-4">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between">
+                        <div>
+                            <h1 class="h3 mb-1 fw-bold">
+                                <i class="bi bi-shield-lock-fill text-danger me-2"></i>Admin Control Panel
+                            </h1>
+                            <p class="text-muted mb-0">Manage users, courses, and platform announcements.</p>
+                        </div>
+                        <div class="text-end">
+                            <div class="text-muted small fw-semibold" id="liveClock"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm text-center h-100" style="border-top: 4px solid #dc3545;">
+                <div class="card-body py-4">
+                    <i class="bi bi-person-badge-fill display-5 text-danger mb-2"></i>
+                    <div class="display-5 fw-bold text-danger">@totalAdmins</div>
+                    <div class="text-muted text-uppercase small fw-semibold">Admins</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm text-center h-100" style="border-top: 4px solid #f59e0b;">
+                <div class="card-body py-4">
+                    <i class="bi bi-person-workspace display-5 text-warning mb-2"></i>
+                    <div class="display-5 fw-bold text-warning">@totalLecturers</div>
+                    <div class="text-muted text-uppercase small fw-semibold">Lecturers</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm text-center h-100" style="border-top: 4px solid #0d6efd;">
+                <div class="card-body py-4">
+                    <i class="bi bi-people-fill display-5 text-primary mb-2"></i>
+                    <div class="display-5 fw-bold text-primary">@totalStudents</div>
+                    <div class="text-muted text-uppercase small fw-semibold">Students</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm text-center h-100" style="border-top: 4px solid #10b981;">
+                <div class="card-body py-4">
+                    <i class="bi bi-book-fill display-5 text-success mb-2"></i>
+                    <div class="display-5 fw-bold text-success">@totalCourses</div>
+                    <div class="text-muted text-uppercase small fw-semibold">Total Courses</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm text-center h-100" style="border-top: 4px solid #6366f1;">
+                <div class="card-body py-4">
+                    <i class="bi bi-megaphone-fill display-5 text-primary mb-2"></i>
+                    <div class="display-5 fw-bold text-primary">@totalAnnouncements</div>
+                    <div class="text-muted text-uppercase small fw-semibold">Announcements</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom fw-semibold d-flex align-items-center">
+                    <i class="bi bi-gear-fill text-danger me-2"></i>Admin Controls
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <a asp-action="ManageUsers" class="text-decoration-none">
+                                <div class="card border border-danger border-opacity-25 h-100 hover-shadow">
+                                    <div class="card-body text-center py-4">
+                                        <i class="bi bi-people-fill display-5 text-danger mb-2"></i>
+                                        <h5 class="fw-bold text-dark">Manage Users</h5>
+                                        <p class="text-muted small mb-0">Create, view, and delete lecturer & student accounts</p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a asp-action="ManageAnnouncements" class="text-decoration-none">
+                                <div class="card border border-primary border-opacity-25 h-100 hover-shadow">
+                                    <div class="card-body text-center py-4">
+                                        <i class="bi bi-megaphone-fill display-5 text-primary mb-2"></i>
+                                        <h5 class="fw-bold text-dark">Announcements</h5>
+                                        <p class="text-muted small mb-0">Post and manage platform-wide announcements</p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        @* <div class="col-md-4">
+                            <a asp-action="ManageCourses" class="text-decoration-none">
+                                <div class="card border border-success border-opacity-25 h-100 hover-shadow">
+                                    <div class="card-body text-center py-4">
+                                        <i class="bi bi-book-fill display-5 text-success mb-2"></i>
+                                        <h5 class="fw-bold text-dark">View All Courses</h5>
+                                        <p class="text-muted small mb-0">Browse all courses on the platform</p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div> *@
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    @* ==================== LECTURER DASHBOARD ==================== *@
     var totalCourses = ViewBag.TotalCourses ?? 0;
     var totalLessons = ViewBag.TotalLessons ?? 0;
     var totalAssignments = ViewBag.TotalAssignments ?? 0;
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm border-start border-4 border-success">
+                <div class="card-body p-4">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between">
+                        <div>
+                            <h1 class="h3 mb-1 fw-bold">
+                                <i class="bi bi-easel-fill text-success me-2"></i>Lecturer Dashboard
+                            </h1>
+                            <p class="text-muted mb-0">Manage your courses, lessons, and assignments.</p>
+                        </div>
+                        <div class="text-end">
+                            <div class="text-muted small fw-semibold" id="liveClock"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm text-center h-100" style="border-top: 4px solid #10b981;">
+                <div class="card-body py-4">
+                    <i class="bi bi-book-fill display-5 text-success mb-2"></i>
+                    <div class="display-5 fw-bold text-success">@totalCourses</div>
+                    <div class="text-muted text-uppercase small fw-semibold">My Courses</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm text-center h-100" style="border-top: 4px solid #f59e0b;">
+                <div class="card-body py-4">
+                    <i class="bi bi-journal-text display-5 text-warning mb-2"></i>
+                    <div class="display-5 fw-bold text-warning">@totalLessons</div>
+                    <div class="text-muted text-uppercase small fw-semibold">My Lessons</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm text-center h-100" style="border-top: 4px solid #ef4444;">
+                <div class="card-body py-4">
+                    <i class="bi bi-clipboard-check display-5 text-danger mb-2"></i>
+                    <div class="display-5 fw-bold text-danger">@totalAssignments</div>
+                    <div class="text-muted text-uppercase small fw-semibold">My Assignments</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom fw-semibold d-flex align-items-center">
+                    <i class="bi bi-gear-fill text-success me-2"></i>Lecturer Controls
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <a asp-action="ManageCourses" class="text-decoration-none">
+                                <div class="card border border-success border-opacity-25 h-100 hover-shadow">
+                                    <div class="card-body text-center py-4">
+                                        <i class="bi bi-book-fill display-5 text-success mb-2"></i>
+                                        <h5 class="fw-bold text-dark">My Courses</h5>
+                                        <p class="text-muted small mb-0">Create and manage your own courses</p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a asp-action="ManageLessons" class="text-decoration-none">
+                                <div class="card border border-warning border-opacity-25 h-100 hover-shadow">
+                                    <div class="card-body text-center py-4">
+                                        <i class="bi bi-journal-text display-5 text-warning mb-2"></i>
+                                        <h5 class="fw-bold text-dark">My Lessons</h5>
+                                        <p class="text-muted small mb-0">Upload slides, videos, and lesson content</p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a asp-action="ManageAssignments" class="text-decoration-none">
+                                <div class="card border border-danger border-opacity-25 h-100 hover-shadow">
+                                    <div class="card-body text-center py-4">
+                                        <i class="bi bi-clipboard-check display-5 text-danger mb-2"></i>
+                                        <h5 class="fw-bold text-dark">My Assignments</h5>
+                                        <p class="text-muted small mb-0">Create and grade student assignments</p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 }
-
-@* ========== 顶部横幅 ========== *@
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="ilow-card bg-white p-4 border-start border-4 border-primary">
-            <div class="d-flex flex-wrap align-items-center justify-content-between">
-                <div>
-                    <h1 class="h3 mb-1 fw-bold">
-                        <span class="text-primary"><i class="bi bi-gear-fill me-2"></i></span>Admin Control Panel
-                    </h1>
-                    <p class="text-muted mb-0">Manage your entire learning platform from one place.</p>
-                </div>
-                <div class="text-end">
-                    <div class="text-muted small fw-semibold" id="liveClock"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-@* ========== 四个统计卡片 ========== *@
-<div class="row g-4 mb-4">
-    <div class="col-md-3 col-sm-6">
-        <div class="card border-0 shadow-sm text-center h-100" style="border-top: 4px solid #6366f1;">
-            <div class="card-body py-4">
-                <div class="display-5 fw-bold text-primary mb-1">@totalUsers</div>
-                <div class="text-muted text-uppercase small fw-semibold">Users</div>
-            </div>
-            <a asp-action="ManageUsers" class="stretched-link"></a>
-        </div>
-    </div>
-    <div class="col-md-3 col-sm-6">
-        <div class="card border-0 shadow-sm text-center h-100" style="border-top: 4px solid #10b981;">
-            <div class="card-body py-4">
-                <div class="display-5 fw-bold text-success mb-1">@totalCourses</div>
-                <div class="text-muted text-uppercase small fw-semibold">Courses</div>
-            </div>
-            <a asp-action="ManageCourses" class="stretched-link"></a>
-        </div>
-    </div>
-    <div class="col-md-3 col-sm-6">
-        <div class="card border-0 shadow-sm text-center h-100" style="border-top: 4px solid #f59e0b;">
-            <div class="card-body py-4">
-                <div class="display-5 fw-bold text-warning mb-1">@totalLessons</div>
-                <div class="text-muted text-uppercase small fw-semibold">Lessons</div>
-            </div>
-            <a asp-action="ManageLessons" class="stretched-link"></a>
-        </div>
-    </div>
-    <div class="col-md-3 col-sm-6">
-        <div class="card border-0 shadow-sm text-center h-100" style="border-top: 4px solid #ef4444;">
-            <div class="card-body py-4">
-                <div class="display-5 fw-bold text-danger mb-1">@totalAssignments</div>
-                <div class="text-muted text-uppercase small fw-semibold">Assignments</div>
-            </div>
-            <a asp-action="ManageAssignments" class="stretched-link"></a>
-        </div>
-    </div>
-</div>
-
-@* ========== 三列内容 ========== *@
-<div class="row g-4">
-    <div class="col-lg-4">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-white border-bottom fw-semibold">
-                <i class="bi bi-lightning-charge-fill text-warning me-2"></i>Quick Actions
-            </div>
-            <div class="card-body d-grid gap-2">
-                <a asp-action="ManageCourses" class="btn btn-outline-success btn-sm text-start">
-                    <i class="bi bi-plus-circle me-2"></i>New Course
-                </a>
-                <a asp-action="ManageLessons" class="btn btn-outline-warning btn-sm text-start">
-                    <i class="bi bi-plus-circle me-2"></i>New Lesson
-                </a>
-                <a asp-action="ManageAssignments" class="btn btn-outline-danger btn-sm text-start">
-                    <i class="bi bi-plus-circle me-2"></i>New Assignment
-                </a>
-                <a asp-action="ManageUsers" class="btn btn-outline-primary btn-sm text-start">
-                    <i class="bi bi-people me-2"></i>View All Users
-                </a>
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-4">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-white border-bottom fw-semibold">
-                <i class="bi bi-megaphone-fill text-info me-2"></i>Announcements
-            </div>
-            <div class="card-body text-center text-muted py-4">
-                <i class="bi bi-calendar-plus display-4 d-block mb-2"></i>
-                <p>Announcements module coming soon.</p>
-                <span class="badge bg-info">Planned</span>
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-4">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-white border-bottom fw-semibold">
-                <i class="bi bi-heart-pulse-fill text-danger me-2"></i>Stress Tracker
-            </div>
-            <div class="card-body text-center text-muted py-4">
-                <i class="bi bi-graph-up-arrow display-4 d-block mb-2"></i>
-                <p>Student stress insights coming soon.</p>
-                <span class="badge bg-info">Planned</span>
-            </div>
-        </div>
-    </div>
-</div>
 
 @section Scripts {
     <script>

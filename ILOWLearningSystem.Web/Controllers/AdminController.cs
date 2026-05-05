@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ILOWLearningSystem.Web.Controllers;
 
-// Member 4: Admin / Lecturer Module + Stress Tracker Feature
+// Member 4: Admin / Lecturer Module
 [Authorize(Roles = UserRoles.Admin + "," + UserRoles.Lecturer)]
 public class AdminController : Controller
 {
@@ -17,16 +17,29 @@ public class AdminController : Controller
         _db = db;
     }
 
+    // ==================== 获取当前用户信息 ====================
+    private int GetCurrentUserId()
+    {
+        var email = User.Identity?.Name;
+        return _db.Users.Where(u => u.Email == email).Select(u => u.UserId).FirstOrDefault();
+    }
+
+    // ==================== DASHBOARD ====================
     [HttpGet]
     public IActionResult Dashboard()
     {
-        ViewBag.TotalUsers = _db.Users.Count();
+        ViewBag.IsAdmin = User.IsInRole(UserRoles.Admin);
+
+        ViewBag.TotalAdmins = _db.Users.Count(u => u.Role == UserRoles.Admin);
+        ViewBag.TotalLecturers = _db.Users.Count(u => u.Role == UserRoles.Lecturer);
+        ViewBag.TotalStudents = _db.Users.Count(u => u.Role == UserRoles.Student);
         ViewBag.TotalCourses = _db.Courses.Count();
-        ViewBag.TotalLessons = _db.Lessons.Count();
-        ViewBag.TotalAssignments = _db.Assignments.Count();
+        ViewBag.TotalAnnouncements = _db.Announcements.Count();
+
         return View();
     }
 
+    // ==================== MANAGE USERS (仅 Admin) ====================
     [HttpGet]
     [Authorize(Roles = UserRoles.Admin)]
     public IActionResult ManageUsers()
@@ -50,10 +63,55 @@ public class AdminController : Controller
         return RedirectToAction(nameof(ManageUsers));
     }
 
+    [HttpPost]
+    [Authorize(Roles = UserRoles.Admin)]
+    [ValidateAntiForgeryToken]
+    public IActionResult CreateLecturer(string FullName, string Email, string Password)
+    {
+        if (string.IsNullOrWhiteSpace(FullName) || string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Password))
+        {
+            TempData["Error"] = "All fields are required.";
+            return RedirectToAction(nameof(ManageUsers));
+        }
+
+        if (_db.Users.Any(u => u.Email == Email))
+        {
+            TempData["Error"] = "A user with this email already exists.";
+            return RedirectToAction(nameof(ManageUsers));
+        }
+
+        var user = new User
+        {
+            FullName = FullName,
+            Email = Email,
+            Password = Password,
+            Role = UserRoles.Lecturer,
+            CreatedAt = DateTime.Now
+        };
+
+        _db.Users.Add(user);
+        _db.SaveChanges();
+        TempData["Message"] = $"Lecturer '{FullName}' created successfully.";
+        return RedirectToAction(nameof(ManageUsers));
+    }
+
+    // ==================== MANAGE COURSES ====================
     [HttpGet]
     public IActionResult ManageCourses()
     {
-        var courses = _db.Courses.OrderBy(c => c.Title).ToList();
+        List<Course> courses;
+
+        if (User.IsInRole(UserRoles.Admin))
+        {
+            courses = _db.Courses.OrderBy(c => c.Title).ToList();
+        }
+        else
+        {
+            var lecturerName = _db.Users.Where(u => u.UserId == GetCurrentUserId()).Select(u => u.FullName).FirstOrDefault();
+            courses = _db.Courses.Where(c => c.LecturerName == lecturerName).OrderBy(c => c.Title).ToList();
+        }
+
+        ViewBag.IsAdmin = User.IsInRole(UserRoles.Admin);
         return View(courses);
     }
 
@@ -93,7 +151,6 @@ public class AdminController : Controller
             }
 
             var filePath = Path.Combine(uploadsFolder, fileName);
-
             using (var stream = new FileStream(filePath, FileMode.Create))
             {
                 await ImageFile.CopyToAsync(stream);
@@ -111,7 +168,7 @@ public class AdminController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> EditCourse(Course course, IFormFile? ImageFile)
+    public async Task<IActionResult> EditCourse(Course course, IFormFile? ImageFile, bool RemoveImage = false)
     {
         if (!ModelState.IsValid)
         {
@@ -126,18 +183,18 @@ public class AdminController : Controller
             return RedirectToAction(nameof(ManageCourses));
         }
 
-        bool RemoveImage = false;
-
+        // 删除旧图片
         if (RemoveImage && !string.IsNullOrEmpty(existing.ImagePath))
         {
-            var fullPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", existing.ImagePath.TrimStart('/'));
-            if (System.IO.File.Exists(fullPath))
+            var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", existing.ImagePath.TrimStart('/'));
+            if (System.IO.File.Exists(oldPath))
             {
-                System.IO.File.Delete(fullPath);
+                System.IO.File.Delete(oldPath);
             }
             existing.ImagePath = null;
         }
 
+        // 上传新图片
         if (ImageFile != null && ImageFile.Length > 0)
         {
             var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
@@ -157,23 +214,21 @@ public class AdminController : Controller
 
             if (!string.IsNullOrEmpty(existing.ImagePath))
             {
-                var oldFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", existing.ImagePath.TrimStart('/'));
-                if (System.IO.File.Exists(oldFilePath))
+                var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", existing.ImagePath.TrimStart('/'));
+                if (System.IO.File.Exists(oldPath))
                 {
-                    System.IO.File.Delete(oldFilePath);
+                    System.IO.File.Delete(oldPath);
                 }
             }
 
             var fileName = Guid.NewGuid().ToString() + extension;
             var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "courses");
-
             if (!Directory.Exists(uploadsFolder))
             {
                 Directory.CreateDirectory(uploadsFolder);
             }
 
             var filePath = Path.Combine(uploadsFolder, fileName);
-
             using (var stream = new FileStream(filePath, FileMode.Create))
             {
                 await ImageFile.CopyToAsync(stream);
@@ -194,6 +249,32 @@ public class AdminController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    public IActionResult RemoveCourseImage(int id)
+    {
+        var course = _db.Courses.Find(id);
+        if (course == null)
+        {
+            TempData["Error"] = "Course not found.";
+            return RedirectToAction(nameof(ManageCourses));
+        }
+
+        if (!string.IsNullOrEmpty(course.ImagePath))
+        {
+            var fullPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", course.ImagePath.TrimStart('/'));
+            if (System.IO.File.Exists(fullPath))
+            {
+                System.IO.File.Delete(fullPath);
+            }
+        }
+
+        course.ImagePath = null;
+        _db.SaveChanges();
+        TempData["Message"] = $"Image removed from '{course.Title}'.";
+        return RedirectToAction(nameof(ManageCourses));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     public IActionResult DeleteCourse(int id)
     {
         var course = _db.Courses.Find(id);
@@ -206,13 +287,32 @@ public class AdminController : Controller
         return RedirectToAction(nameof(ManageCourses));
     }
 
+    // ==================== MANAGE LESSONS ====================
     [HttpGet]
     public IActionResult ManageLessons(int courseId = 0)
     {
-        ViewBag.Courses = _db.Courses.OrderBy(c => c.Title).ToList();
-        var lessons = courseId == 0
-            ? _db.Lessons.Include(l => l.Course).OrderBy(l => l.Title).ToList()
-            : _db.Lessons.Include(l => l.Course).Where(l => l.CourseId == courseId).OrderBy(l => l.Title).ToList();
+        var lecturerName = _db.Users.Where(u => u.UserId == GetCurrentUserId()).Select(u => u.FullName).FirstOrDefault();
+        var myCourseIds = _db.Courses.Where(c => c.LecturerName == lecturerName).Select(c => c.CourseId).ToList();
+
+        List<Course> courses;
+        List<Lesson> lessons;
+
+        if (User.IsInRole(UserRoles.Admin))
+        {
+            courses = _db.Courses.OrderBy(c => c.Title).ToList();
+            lessons = courseId == 0
+                ? _db.Lessons.Include(l => l.Course).OrderBy(l => l.Title).ToList()
+                : _db.Lessons.Include(l => l.Course).Where(l => l.CourseId == courseId).OrderBy(l => l.Title).ToList();
+        }
+        else
+        {
+            courses = _db.Courses.Where(c => c.LecturerName == lecturerName).OrderBy(c => c.Title).ToList();
+            var filteredIds = courseId == 0 ? myCourseIds : new List<int> { courseId };
+            lessons = _db.Lessons.Include(l => l.Course).Where(l => filteredIds.Contains(l.CourseId)).OrderBy(l => l.Title).ToList();
+        }
+
+        ViewBag.Courses = courses;
+        ViewBag.IsAdmin = User.IsInRole(UserRoles.Admin);
         return View(lessons);
     }
 
@@ -283,79 +383,44 @@ public class AdminController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public IActionResult RemoveCourseImage(int id)
+    public IActionResult DeleteLesson(int id)
     {
-        var course = _db.Courses.Find(id);
-        if (course == null)
+        var lesson = _db.Lessons.Find(id);
+        if (lesson != null)
         {
-            TempData["Error"] = "Course not found.";
-            return RedirectToAction(nameof(ManageCourses));
+            _db.Lessons.Remove(lesson);
+            _db.SaveChanges();
+            TempData["Message"] = $"Lesson '{lesson.Title}' deleted successfully.";
         }
-
-        if (!string.IsNullOrEmpty(course.ImagePath))
-        {
-            var fullPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", course.ImagePath.TrimStart('/'));
-            if (System.IO.File.Exists(fullPath))
-            {
-                System.IO.File.Delete(fullPath);
-            }
-        }
-
-        course.ImagePath = null;
-        _db.SaveChanges();
-        TempData["Message"] = $"Image removed from '{course.Title}'.";
-        return RedirectToAction(nameof(ManageCourses));
+        return RedirectToAction(nameof(ManageLessons));
     }
 
-    private async Task<string> SaveUploadedFile(IFormFile file, string subfolder, string[] allowedExtensions, int maxSizeMB)
-    {
-        var extension = Path.GetExtension(file.FileName).ToLower();
-        if (!allowedExtensions.Contains(extension))
-        {
-            throw new InvalidOperationException($"File type '{extension}' is not allowed.");
-        }
-
-        if (file.Length > maxSizeMB * 1024 * 1024)
-        {
-            throw new InvalidOperationException($"File size exceeds {maxSizeMB}MB limit.");
-        }
-
-        var fileName = Guid.NewGuid().ToString() + extension;
-        var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", subfolder);
-
-        if (!Directory.Exists(uploadsFolder))
-        {
-            Directory.CreateDirectory(uploadsFolder);
-        }
-
-        var filePath = Path.Combine(uploadsFolder, fileName);
-        using (var stream = new FileStream(filePath, FileMode.Create))
-        {
-            await file.CopyToAsync(stream);
-        }
-
-        return $"/uploads/{subfolder}/" + fileName;
-    }
-
-    private void DeleteOldFile(string? filePath)
-    {
-        if (!string.IsNullOrEmpty(filePath))
-        {
-            var fullPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", filePath.TrimStart('/'));
-            if (System.IO.File.Exists(fullPath))
-            {
-                System.IO.File.Delete(fullPath);
-            }
-        }
-    }
-
+    // ==================== MANAGE ASSIGNMENTS ====================
     [HttpGet]
     public IActionResult ManageAssignments(int courseId = 0)
     {
-        ViewBag.Courses = _db.Courses.OrderBy(c => c.Title).ToList();
-        var assignments = courseId == 0
-            ? _db.Assignments.Include(a => a.Course).OrderBy(a => a.Title).ToList()
-            : _db.Assignments.Include(a => a.Course).Where(a => a.CourseId == courseId).OrderBy(a => a.Title).ToList();
+        var lecturerName = _db.Users.Where(u => u.UserId == GetCurrentUserId()).Select(u => u.FullName).FirstOrDefault();
+        var myCourseIds = _db.Courses.Where(c => c.LecturerName == lecturerName).Select(c => c.CourseId).ToList();
+
+        List<Course> courses;
+        List<Assignment> assignments;
+
+        if (User.IsInRole(UserRoles.Admin))
+        {
+            courses = _db.Courses.OrderBy(c => c.Title).ToList();
+            assignments = courseId == 0
+                ? _db.Assignments.Include(a => a.Course).OrderBy(a => a.Title).ToList()
+                : _db.Assignments.Include(a => a.Course).Where(a => a.CourseId == courseId).OrderBy(a => a.Title).ToList();
+        }
+        else
+        {
+            courses = _db.Courses.Where(c => c.LecturerName == lecturerName).OrderBy(c => c.Title).ToList();
+            var filteredIds = courseId == 0 ? myCourseIds : new List<int> { courseId };
+            assignments = _db.Assignments.Include(a => a.Course).Where(a => filteredIds.Contains(a.CourseId)).OrderBy(a => a.Title).ToList();
+        }
+
+        ViewBag.Courses = courses;
+        ViewBag.IsAdmin = User.IsInRole(UserRoles.Admin);
         return View(assignments);
     }
 
@@ -415,5 +480,57 @@ public class AdminController : Controller
             TempData["Message"] = $"Assignment '{assignment.Title}' deleted successfully.";
         }
         return RedirectToAction(nameof(ManageAssignments));
+    }
+
+    // ==================== MANAGE ANNOUNCEMENTS (仅 Admin) ====================
+    [HttpGet]
+    [Authorize(Roles = UserRoles.Admin)]
+    public IActionResult ManageAnnouncements()
+    {
+        var announcements = _db.Announcements.Include(a => a.CreatedByUser).OrderByDescending(a => a.CreatedAt).ToList();
+        return View(announcements);
+    }
+
+    // ==================== HELPER: 文件上传 ====================
+    private async Task<string> SaveUploadedFile(IFormFile file, string subfolder, string[] allowedExtensions, int maxSizeMB)
+    {
+        var extension = Path.GetExtension(file.FileName).ToLower();
+        if (!allowedExtensions.Contains(extension))
+        {
+            throw new InvalidOperationException($"File type '{extension}' is not allowed.");
+        }
+
+        if (file.Length > maxSizeMB * 1024 * 1024)
+        {
+            throw new InvalidOperationException($"File size exceeds {maxSizeMB}MB limit.");
+        }
+
+        var fileName = Guid.NewGuid().ToString() + extension;
+        var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", subfolder);
+
+        if (!Directory.Exists(uploadsFolder))
+        {
+            Directory.CreateDirectory(uploadsFolder);
+        }
+
+        var filePath = Path.Combine(uploadsFolder, fileName);
+        using (var stream = new FileStream(filePath, FileMode.Create))
+        {
+            await file.CopyToAsync(stream);
+        }
+
+        return $"/uploads/{subfolder}/" + fileName;
+    }
+
+    private void DeleteOldFile(string? filePath)
+    {
+        if (!string.IsNullOrEmpty(filePath))
+        {
+            var fullPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", filePath.TrimStart('/'));
+            if (System.IO.File.Exists(fullPath))
+            {
+                System.IO.File.Delete(fullPath);
+            }
+        }
     }
 }

@@ -119,6 +119,15 @@ public class AppDbContext : DbContext
                 Password = "student123",
                 Role = UserRoles.Student,
                 CreatedAt = seedCreatedAt
+            },
+            new User
+            {
+                UserId = 3,
+                FullName = "Lecturer One",
+                Email = "lecturer1@ilow.local",
+                Password = "lecturer123",
+                Role = UserRoles.Lecturer,
+                CreatedAt = seedCreatedAt
             }
         );
 
@@ -132,6 +141,16 @@ public class AppDbContext : DbContext
                 LecturerName = "Lecturer A",
                 ImagePath = null,
                 CreatedAt = seedCreatedAt
+            },
+            new Course
+            {
+                CourseId = 2,
+                Title = "Lecturer's First Course",
+                Description = "This course belongs to Lecturer One for testing.",
+                Category = "Programming",
+                LecturerName = "Lecturer One",
+                ImagePath = null,
+                CreatedAt = seedCreatedAt
             }
         );
 
@@ -141,6 +160,14 @@ public class AppDbContext : DbContext
                 EnrollmentId = 1,
                 UserId = 2,
                 CourseId = 1,
+                EnrolledAt = seedEnrolledAt,
+                Status = "Active"
+            },
+            new Enrollment
+            {
+                EnrollmentId = 2,
+                UserId = 2,
+                CourseId = 2,
                 EnrolledAt = seedEnrolledAt,
                 Status = "Active"
             }
