@@ -170,13 +170,60 @@
         }
         else
         {
+            var enrollmentStatus = ViewBag.EnrollmentStatus?.ToString();
+
             <div class="premium-card p-5 text-center mt-4">
-                <i class="fa-solid fa-lock text-muted mb-3" style="font-size: 3rem;"></i>
-                <h3 class="fw-bold">Course Locked</h3>
-                <p class="text-muted mb-4">Enroll in this course to access lessons and assignments.</p>
-                <form asp-action="Enroll" asp-route-id="@Model.CourseId" method="post">
-                    <button type="submit" class="premium-btn premium-btn-primary px-5">Enroll Now</button>
-                </form>
+
+                @if (enrollmentStatus == "Pending")
+                {
+                    <i class="fa-solid fa-hourglass-half text-warning mb-3"
+                       style="font-size: 3rem;"></i>
+
+                    <h3 class="fw-bold">
+                        Enrollment Still In Progress
+                    </h3>
+
+                    <p class="text-muted mb-0">
+                        Your enrollment request is waiting for lecturer/admin approval.
+                    </p>
+                }
+                else if (enrollmentStatus == "Rejected")
+                {
+                    <i class="fa-solid fa-circle-xmark text-danger mb-3"
+                       style="font-size: 3rem;"></i>
+
+                    <h3 class="fw-bold">
+                        Enrollment Rejected
+                    </h3>
+
+                    <p class="text-muted mb-0">
+                        Your enrollment request was rejected.
+                    </p>
+                }
+                else
+                {
+                    <i class="fa-solid fa-lock text-muted mb-3"
+                       style="font-size: 3rem;"></i>
+
+                    <h3 class="fw-bold">
+                        Course Locked
+                    </h3>
+
+                    <p class="text-muted mb-4">
+                        Enroll in this course to access lessons and assignments.
+                    </p>
+
+                    <form asp-action="Enroll"
+                          asp-route-id="@Model.CourseId"
+                          method="post">
+
+                        <button type="submit"
+                                class="premium-btn premium-btn-primary px-5">
+                            Enroll Now
+                        </button>
+                    </form>
+                }
+
             </div>
         }
     </div>

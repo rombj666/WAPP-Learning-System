@@ -20,6 +20,7 @@ public class AppDbContext : DbContext
     public DbSet<StressRecord> StressRecords => Set<StressRecord>();
     public DbSet<Announcement> Announcements => Set<Announcement>();
 
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -80,7 +81,7 @@ public class AppDbContext : DbContext
             .HasForeignKey(t => t.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        modelBuilder.Entity<StressRecord>()
+       modelBuilder.Entity<StressRecord>()
             .HasOne(r => r.User)
             .WithMany(u => u.StressRecords)
             .HasForeignKey(r => r.UserId)

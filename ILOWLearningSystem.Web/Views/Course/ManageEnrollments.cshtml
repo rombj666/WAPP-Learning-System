@@ -1,0 +1,100 @@
+﻿@model IEnumerable<ILOWLearningSystem.Web.Models.Enrollment>
+
+@{
+    ViewData["Title"] = "Manage Enrollments";
+}
+
+<div class="container py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="fw-bold mb-1">Enrollment Requests</h1>
+            <p class="text-muted mb-0">
+                Approve or reject student enrollment requests.
+            </p>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="premium-card p-5 text-center">
+            <i class="fa-solid fa-circle-check text-success mb-3"
+               style="font-size: 3rem;"></i>
+
+            <h3>No Pending Requests</h3>
+
+            <p class="text-muted mb-0">
+                There are currently no enrollment requests waiting for approval.
+            </p>
+        </div>
+    }
+    else
+    {
+        <div class="premium-card p-0 overflow-hidden">
+            <table class="table align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Student</th>
+                        <th>Email</th>
+                        <th>Course</th>
+                        <th>Requested At</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var enrollment in Model)
+                    {
+                        <tr>
+                            <td class="fw-semibold">
+                                @enrollment.User?.FullName
+                            </td>
+
+                            <td>
+                                @enrollment.User?.Email
+                            </td>
+
+                            <td>
+                                @enrollment.Course?.Title
+                            </td>
+
+                            <td>
+                                @enrollment.EnrolledAt.ToString("dd MMM yyyy hh:mm tt")
+                            </td>
+
+                            <td class="text-center">
+
+                                <a asp-controller="Course"
+                                   asp-action="ApproveEnrollment"
+                                   asp-route-enrollmentId="@enrollment.EnrollmentId"
+                                   class="btn btn-success btn-sm me-2">
+
+                                    <i class="fa-solid fa-check"></i>
+                                    Approve
+                                </a>
+
+                                <a asp-controller="Course"
+                                   asp-action="RejectEnrollment"
+                                   asp-route-enrollmentId="@enrollment.EnrollmentId"
+                                   class="btn btn-danger btn-sm">
+
+                                    <i class="fa-solid fa-xmark"></i>
+                                    Reject
+                                </a>
+
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+</div>

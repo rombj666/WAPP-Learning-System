@@ -48,51 +48,54 @@ public class User
 }
 
 // Member 2: Course Module + Daily Tasks System
+
 public class Course
 {
-    [Key]
     public int CourseId { get; set; }
 
     [Required]
-    [MaxLength(200)]
     public string Title { get; set; } = string.Empty;
 
-    [MaxLength(2000)]
     public string? Description { get; set; }
 
-    [MaxLength(100)]
     public string? Category { get; set; }
 
-    [MaxLength(200)]
     public string? LecturerName { get; set; }
 
-    [MaxLength(1000)]
+    public int? LecturerId { get; set; }
+
+    public User? Lecturer { get; set; }
+
     public string? ImagePath { get; set; }
 
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public ICollection<Lesson> Lessons { get; set; } = new List<Lesson>();
+
+    public ICollection<Assignment> Assignments { get; set; } = new List<Assignment>();
 
     public ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
-    public ICollection<Lesson> Lessons { get; set; } = new List<Lesson>();
-    public ICollection<Assignment> Assignments { get; set; } = new List<Assignment>();
 }
+
 
 public class Enrollment
 {
     [Key]
     public int EnrollmentId { get; set; }
 
-    [ForeignKey(nameof(User))]
     public int UserId { get; set; }
 
-    [ForeignKey(nameof(Course))]
     public int CourseId { get; set; }
 
     public DateTime EnrolledAt { get; set; }
 
-    [MaxLength(50)]
-    public string Status { get; set; } = "Active";
+    public string Status { get; set; } = "Pending";
 
+    // Navigation Properties
+    [ForeignKey("UserId")]
     public User? User { get; set; }
+
+    [ForeignKey("CourseId")]
     public Course? Course { get; set; }
 }
 

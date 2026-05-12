@@ -100,11 +100,10 @@ public class SubmissionController : Controller
             await _db.SaveChangesAsync();
             TempData["SuccessMessage"] = "Assignment submitted successfully!";
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             TempData["ErrorMessage"] = "An error occurred while saving your submission. Please try again.";
         }
-
         return RedirectToAction("Details", "Assignment", new { id = model.AssignmentId });
     }
 

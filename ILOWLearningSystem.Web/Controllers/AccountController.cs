@@ -15,18 +15,28 @@ public class AccountController : Controller
     private readonly AppDbContext _db;
     private readonly IEmailService _emailService;
 
-    public AccountController(IAuthService authService, AppDbContext db, IEmailService emailService)
+    public AccountController(
+        IAuthService authService,
+        AppDbContext db,
+        IEmailService emailService)
     {
         _authService = authService;
         _db = db;
         _emailService = emailService;
     }
 
+    // =========================
+    // LOGIN
+    // =========================
+
     [HttpGet]
     [AllowAnonymous]
     public IActionResult Login(string? returnUrl = null)
     {
-        return View(new LoginViewModel { ReturnUrl = returnUrl });
+        return View(new LoginViewModel
+        {
+            ReturnUrl = returnUrl
+        });
     }
 
     [HttpPost]
@@ -39,33 +49,57 @@ public class AccountController : Controller
             return View(model);
         }
 
-        var (ok, errorMessage) = await _authService.SignInAsync(HttpContext, model.Email, model.Password);
+        var (ok, errorMessage) =
+            await _authService.SignInAsync(
+                HttpContext,
+                model.Email,
+                model.Password);
+
         if (!ok)
         {
             ModelState.AddModelError(string.Empty, errorMessage);
             return View(model);
         }
 
-        if (!string.IsNullOrWhiteSpace(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl))
+        if (!string.IsNullOrWhiteSpace(model.ReturnUrl)
+            && Url.IsLocalUrl(model.ReturnUrl))
         {
             return Redirect(model.ReturnUrl);
         }
 
-        var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == model.Email);
+        var user = await _db.Users
+            .FirstOrDefaultAsync(u => u.Email == model.Email);
 
         if (user == null)
         {
             await _authService.SignOutAsync(HttpContext);
+
             return RedirectToAction("Login");
         }
 
-        if (user.Role == UserRoles.Admin || user.Role == UserRoles.Lecturer)
+        // SAVE SESSION
+        HttpContext.Session.SetString(
+            "UserId",
+            user.UserId.ToString());
+
+        // ADMIN / LECTURER
+        if (user.Role == UserRoles.Admin
+            || user.Role == UserRoles.Lecturer)
         {
-            return RedirectToAction("Dashboard", "Admin");
+            return RedirectToAction(
+                "Dashboard",
+                "Admin");
         }
 
-        return RedirectToAction("Dashboard", "Student");
+        // STUDENT
+        return RedirectToAction(
+            "Dashboard",
+            "Home");
     }
+
+    // =========================
+    // REGISTER
+    // =========================
 
     [HttpGet]
     [AllowAnonymous]
@@ -84,22 +118,45 @@ public class AccountController : Controller
             return View(model);
         }
 
-        var (ok, errorMessage) = await _authService.RegisterAsync(
-            model.FullName,
-            model.Email,
-            model.Password,
-            UserRoles.Student
-        );
+        var (ok, errorMessage) =
+            await _authService.RegisterAsync(
+                model.FullName,
+                model.Email,
+                model.Password,
+                UserRoles.Student);
 
         if (!ok)
         {
-            ModelState.AddModelError(string.Empty, errorMessage);
+            ModelState.AddModelError(
+                string.Empty,
+                errorMessage);
+
             return View(model);
         }
 
-        await _authService.SignInAsync(HttpContext, model.Email, model.Password);
-        return RedirectToAction("Dashboard", "Student");
+        await _authService.SignInAsync(
+            HttpContext,
+            model.Email,
+            model.Password);
+
+        var user = await _db.Users
+            .FirstOrDefaultAsync(u => u.Email == model.Email);
+
+        if (user != null)
+        {
+            HttpContext.Session.SetString(
+                "UserId",
+                user.UserId.ToString());
+        }
+
+        return RedirectToAction(
+            "Dashboard",
+            "Home");
     }
+
+    // =========================
+    // FORGOT PASSWORD
+    // =========================
 
     [HttpGet]
     [AllowAnonymous]
@@ -111,22 +168,29 @@ public class AccountController : Controller
     [HttpPost]
     [AllowAnonymous]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
+    public async Task<IActionResult> ForgotPassword(
+        ForgotPasswordViewModel model)
     {
         if (!ModelState.IsValid)
         {
             return View(model);
         }
 
-        var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == model.Email);
+        var user = await _db.Users
+            .FirstOrDefaultAsync(u => u.Email == model.Email);
 
         if (user == null)
         {
-            ModelState.AddModelError(string.Empty, "No account found with that email.");
+            ModelState.AddModelError(
+                string.Empty,
+                "No account found with that email.");
+
             return View(model);
         }
 
-        var otp = new Random().Next(100000, 999999).ToString();
+        var otp = new Random()
+            .Next(100000, 999999)
+            .ToString();
 
         user.ResetOtp = otp;
         user.ResetOtpExpiry = DateTime.UtcNow.AddMinutes(5);
@@ -134,64 +198,109 @@ public class AccountController : Controller
         await _db.SaveChangesAsync();
 
         var subject = "ILOW Password Reset OTP";
-        var body = $"Your OTP code is: {otp}. It will expire in 5 minutes.";
 
-        await _emailService.SendEmailAsync(model.Email, subject, body);
+        var body =
+            $"Your OTP code is: {otp}. It will expire in 5 minutes.";
 
-        TempData["OtpMessage"] = "OTP has been sent to your email.";
+        await _emailService.SendEmailAsync(
+            model.Email,
+            subject,
+            body);
 
-        return RedirectToAction("VerifyOtp", new { email = model.Email });
+        TempData["OtpMessage"] =
+            "OTP has been sent to your email.";
+
+        return RedirectToAction(
+            "VerifyOtp",
+            new { email = model.Email });
     }
+
+    // =========================
+    // VERIFY OTP
+    // =========================
 
     [HttpGet]
     [AllowAnonymous]
     public IActionResult VerifyOtp(string email)
     {
-        return View(new VerifyOtpViewModel { Email = email });
+        return View(new VerifyOtpViewModel
+        {
+            Email = email
+        });
     }
 
     [HttpPost]
     [AllowAnonymous]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> VerifyOtp(VerifyOtpViewModel model)
+    public async Task<IActionResult> VerifyOtp(
+        VerifyOtpViewModel model)
     {
         if (!ModelState.IsValid)
         {
             return View(model);
         }
 
-        var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == model.Email);
+        var user = await _db.Users
+            .FirstOrDefaultAsync(u => u.Email == model.Email);
 
         if (user == null)
         {
-            ModelState.AddModelError(string.Empty, "Account not found.");
+            ModelState.AddModelError(
+                string.Empty,
+                "Account not found.");
+
             return View(model);
         }
 
-        if (string.IsNullOrWhiteSpace(user.ResetOtp) || user.ResetOtpExpiry == null)
+        if (string.IsNullOrWhiteSpace(user.ResetOtp)
+            || user.ResetOtpExpiry == null)
         {
-            ModelState.AddModelError(string.Empty, "No OTP request found. Please request a new OTP.");
+            ModelState.AddModelError(
+                string.Empty,
+                "No OTP request found.");
+
             return View(model);
         }
 
         if (DateTime.UtcNow > user.ResetOtpExpiry.Value)
         {
-            ModelState.AddModelError(string.Empty, "OTP has expired. Please request a new OTP.");
+            ModelState.AddModelError(
+                string.Empty,
+                "OTP has expired.");
+
             return View(model);
         }
 
-        if (!string.Equals(user.ResetOtp, model.Otp, StringComparison.Ordinal))
+        if (!string.Equals(
+            user.ResetOtp,
+            model.Otp,
+            StringComparison.Ordinal))
         {
-            ModelState.AddModelError(string.Empty, "Invalid OTP. Please try again.");
+            ModelState.AddModelError(
+                string.Empty,
+                "Invalid OTP.");
+
             return View(model);
         }
 
-        return RedirectToAction("ResetPassword", new { email = model.Email, otp = model.Otp });
+        return RedirectToAction(
+            "ResetPassword",
+            new
+            {
+                email = model.Email,
+                otp = model.Otp
+            });
     }
+
+    // =========================
+    // RESET PASSWORD
+    // =========================
 
     [HttpGet]
     [AllowAnonymous]
-    public IActionResult ResetPassword(string email, string otp)
+    public IActionResult ResetPassword(
+        string email,
+        string otp)
     {
         return View(new ResetPasswordViewModel
         {
@@ -203,69 +312,84 @@ public class AccountController : Controller
     [HttpPost]
     [AllowAnonymous]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+    public async Task<IActionResult> ResetPassword(
+        ResetPasswordViewModel model)
     {
         if (!ModelState.IsValid)
         {
             return View(model);
         }
 
-        var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == model.Email);
+        var user = await _db.Users
+            .FirstOrDefaultAsync(u => u.Email == model.Email);
 
         if (user == null)
         {
-            ModelState.AddModelError(string.Empty, "Account not found.");
+            ModelState.AddModelError(
+                string.Empty,
+                "Account not found.");
+
             return View(model);
         }
 
-        if (string.IsNullOrWhiteSpace(user.ResetOtp) || user.ResetOtpExpiry == null)
+        if (user.ResetOtp != model.Otp)
         {
-            ModelState.AddModelError(string.Empty, "No OTP request found. Please request a new OTP.");
-            return View(model);
-        }
+            ModelState.AddModelError(
+                string.Empty,
+                "Invalid OTP.");
 
-        if (DateTime.UtcNow > user.ResetOtpExpiry.Value)
-        {
-            ModelState.AddModelError(string.Empty, "OTP has expired. Please request a new OTP.");
-            return View(model);
-        }
-
-        if (!string.Equals(user.ResetOtp, model.Otp, StringComparison.Ordinal))
-        {
-            ModelState.AddModelError(string.Empty, "Invalid OTP.");
             return View(model);
         }
 
         user.Password = model.NewPassword;
+
         user.ResetOtp = null;
         user.ResetOtpExpiry = null;
 
         await _db.SaveChangesAsync();
 
-        TempData["SuccessMessage"] = "Password has been reset successfully. Please log in.";
+        TempData["SuccessMessage"] =
+            "Password reset successful.";
+
         return RedirectToAction("Login");
     }
+
+    // =========================
+    // LOGOUT
+    // =========================
 
     [Authorize]
     [HttpGet]
     public async Task<IActionResult> Logout()
     {
+        HttpContext.Session.Clear();
+
         await _authService.SignOutAsync(HttpContext);
-        return RedirectToAction("Login", "Account");
+
+        return RedirectToAction(
+            "Login",
+            "Account");
     }
+
+    // =========================
+    // PROFILE
+    // =========================
 
     [Authorize]
     [HttpGet]
     public async Task<IActionResult> Profile()
     {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userIdClaim =
+            User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+        if (string.IsNullOrEmpty(userIdClaim)
+            || !int.TryParse(userIdClaim, out int userId))
         {
             return RedirectToAction("Login");
         }
 
-        var user = await _db.Users.FirstOrDefaultAsync(u => u.UserId == userId);
+        var user = await _db.Users
+            .FirstOrDefaultAsync(u => u.UserId == userId);
 
         if (user == null)
         {
@@ -275,18 +399,25 @@ public class AccountController : Controller
         return View(user);
     }
 
+    // =========================
+    // EDIT PROFILE
+    // =========================
+
     [Authorize]
     [HttpGet]
     public async Task<IActionResult> EditProfile()
     {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userIdClaim =
+            User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+        if (string.IsNullOrEmpty(userIdClaim)
+            || !int.TryParse(userIdClaim, out int userId))
         {
             return RedirectToAction("Login");
         }
 
-        var user = await _db.Users.FirstOrDefaultAsync(u => u.UserId == userId);
+        var user = await _db.Users
+            .FirstOrDefaultAsync(u => u.UserId == userId);
 
         if (user == null)
         {
@@ -297,7 +428,8 @@ public class AccountController : Controller
         {
             FullName = user.FullName,
             Email = user.Email,
-            ProfileThemeColor = string.IsNullOrWhiteSpace(user.ProfileThemeColor)
+            ProfileThemeColor =
+                string.IsNullOrWhiteSpace(user.ProfileThemeColor)
                 ? "#163b7a"
                 : user.ProfileThemeColor
         };
@@ -308,21 +440,25 @@ public class AccountController : Controller
     [Authorize]
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> EditProfile(EditProfileViewModel model)
+    public async Task<IActionResult> EditProfile(
+        EditProfileViewModel model)
     {
         if (!ModelState.IsValid)
         {
             return View(model);
         }
 
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userIdClaim =
+            User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+        if (string.IsNullOrEmpty(userIdClaim)
+            || !int.TryParse(userIdClaim, out int userId))
         {
             return RedirectToAction("Login");
         }
 
-        var user = await _db.Users.FirstOrDefaultAsync(u => u.UserId == userId);
+        var user = await _db.Users
+            .FirstOrDefaultAsync(u => u.UserId == userId);
 
         if (user == null)
         {
@@ -330,13 +466,17 @@ public class AccountController : Controller
         }
 
         user.FullName = model.FullName;
-        user.ProfileThemeColor = string.IsNullOrWhiteSpace(model.ProfileThemeColor)
+
+        user.ProfileThemeColor =
+            string.IsNullOrWhiteSpace(model.ProfileThemeColor)
             ? "#163b7a"
             : model.ProfileThemeColor;
 
         await _db.SaveChangesAsync();
 
-        TempData["SuccessMessage"] = "Profile updated successfully.";
+        TempData["SuccessMessage"] =
+            "Profile updated successfully.";
+
         return RedirectToAction("Profile");
     }
 }

@@ -1,0 +1,235 @@
+﻿@model ILOWLearningSystem.Web.Models.StressTrackerViewModel
+
+@{
+    ViewData["Title"] = "Stress Tracker";
+}
+
+<div class="container py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2 class="fw-bold mb-1">
+                Stress Tracker Dashboard
+            </h2>
+
+            <p class="text-muted mb-0">
+                Monitor your wellbeing and stress trends.
+            </p>
+        </div>
+
+        <a asp-action="Create"
+           class="btn btn-primary">
+            Add Stress Record
+        </a>
+
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    <!-- SUMMARY CARDS -->
+
+    <div class="row mb-4">
+
+        <div class="col-md-4">
+
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+
+                    <h6 class="text-muted">
+                        Average Stress
+                    </h6>
+
+                    <h2 class="fw-bold">
+                        @Model.AverageStress.ToString("0.0") / 10
+                    </h2>
+
+                </div>
+            </div>
+
+        </div>
+
+        <div class="col-md-4">
+
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+
+                    <h6 class="text-muted">
+                        Current Status
+                    </h6>
+
+                    <h2 class="fw-bold text-primary">
+                        @Model.StressStatus
+                    </h2>
+
+                </div>
+            </div>
+
+        </div>
+
+        <div class="col-md-4">
+
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+
+                    <h6 class="text-muted">
+                        Total Records
+                    </h6>
+
+                    <h2 class="fw-bold">
+                        @Model.Records.Count
+                    </h2>
+
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- RECOMMENDATION -->
+
+    <div class="alert alert-info mb-4">
+
+        <h5 class="fw-bold">
+            Wellness Recommendation
+        </h5>
+
+        <p class="mb-0">
+            @Model.Recommendation
+        </p>
+
+    </div>
+
+    <!-- CHART -->
+
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-body">
+
+            <h5 class="fw-bold mb-4">
+                Stress Trend
+            </h5>
+
+            <canvas id="stressChart" height="100"></canvas>
+
+        </div>
+
+    </div>
+
+    <!-- HISTORY TABLE -->
+
+    <div class="card shadow-sm border-0">
+
+        <div class="card-body">
+
+            <h5 class="fw-bold mb-4">
+                Stress History
+            </h5>
+
+            @if (!Model.Records.Any())
+            {
+                <div class="alert alert-secondary">
+                    No stress records found.
+                </div>
+            }
+            else
+            {
+                <table class="table table-bordered align-middle">
+
+                    <thead class="table-light">
+
+                        <tr>
+                            <th>Date</th>
+                            <th>Stress Level</th>
+                            <th>Notes</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        @foreach (var item in Model.Records.OrderByDescending(r => r.RecordedAt))
+                        {
+                            <tr>
+
+                                <td>
+                                    @item.RecordedAt.ToString("dd MMM yyyy")
+                                </td>
+
+                                <td>
+                                    @item.StressLevel / 10
+                                </td>
+
+                                <td>
+                                    @item.Note
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+            }
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    @{
+        var labels = Model.Records
+            .OrderBy(r => r.RecordedAt)
+            .Select(r => r.RecordedAt.ToString("dd MMM"))
+            .ToList();
+
+        var dataValues = Model.Records
+            .OrderBy(r => r.RecordedAt)
+            .Select(r => r.StressLevel)
+            .ToList();
+    }
+
+    <script>
+
+        const labels = JSON.parse('@Html.Raw(System.Text.Json.JsonSerializer.Serialize(labels))');
+
+        const data = JSON.parse('@Html.Raw(System.Text.Json.JsonSerializer.Serialize(dataValues))');
+
+        const ctx = document.getElementById('stressChart');
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Stress Level',
+                    data: data,
+                    borderWidth: 3,
+                    tension: 0.3,
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        min: 0,
+                        max: 10
+                    }
+                }
+            }
+        });
+
+    </script>
+}

@@ -17,19 +17,24 @@ public class CourseController : Controller
         _db = db;
     }
 
-    // ========== 只有一个 GetCurrentUserId ==========
     private int GetCurrentUserId()
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (!string.IsNullOrEmpty(userIdClaim) && int.TryParse(userIdClaim, out var userId))
+
+        if (!string.IsNullOrEmpty(userIdClaim) &&
+            int.TryParse(userIdClaim, out var userId))
         {
             return userId;
         }
 
         var email = User.Identity?.Name;
+
         if (!string.IsNullOrEmpty(email))
         {
-            return _db.Users.Where(u => u.Email == email).Select(u => u.UserId).FirstOrDefault();
+            return _db.Users
+                .Where(u => u.Email == email)
+                .Select(u => u.UserId)
+                .FirstOrDefault();
         }
 
         return 0;
@@ -44,10 +49,12 @@ public class CourseController : Controller
         if (User.Identity?.IsAuthenticated ?? false)
         {
             var userId = GetCurrentUserId();
+
             var enrolledCourseIds = await _db.Enrollments
-                .Where(e => e.UserId == userId)
+                .Where(e => e.UserId == userId && e.Status == "Active")
                 .Select(e => e.CourseId)
                 .ToListAsync();
+
             ViewBag.EnrolledCourseIds = enrolledCourseIds;
         }
 
@@ -61,6 +68,7 @@ public class CourseController : Controller
         var course = _db.Courses
             .Include(c => c.Lessons)
             .Include(c => c.Assignments)
+            .Include(c => c.Enrollments)
             .FirstOrDefault(c => c.CourseId == id);
 
         if (course == null)
@@ -71,11 +79,27 @@ public class CourseController : Controller
         if (User.IsInRole("Admin") || User.IsInRole("Lecturer"))
         {
             ViewBag.IsEnrolled = true;
+            ViewBag.EnrollmentStatus = "Active";
         }
         else
         {
             var userId = GetCurrentUserId();
-            ViewBag.IsEnrolled = _db.Enrollments.Any(e => e.UserId == userId && e.CourseId == id && e.Status == "Active");
+
+            var enrollment = _db.Enrollments
+                .FirstOrDefault(e =>
+                    e.UserId == userId &&
+                    e.CourseId == id);
+
+            if (enrollment != null)
+            {
+                ViewBag.EnrollmentStatus = enrollment.Status;
+                ViewBag.IsEnrolled = enrollment.Status == "Active";
+            }
+            else
+            {
+                ViewBag.EnrollmentStatus = "NotEnrolled";
+                ViewBag.IsEnrolled = false;
+            }
         }
 
         return View(course);
@@ -87,9 +111,17 @@ public class CourseController : Controller
     public async Task<IActionResult> Enroll(int id)
     {
         var userId = GetCurrentUserId();
-        if (userId == 0) return RedirectToAction("Login", "Account");
 
-        var exists = await _db.Enrollments.AnyAsync(e => e.UserId == userId && e.CourseId == id);
+        if (userId == 0)
+        {
+            return RedirectToAction("Login", "Account");
+        }
+
+        var exists = await _db.Enrollments
+            .AnyAsync(e =>
+                e.UserId == userId &&
+                e.CourseId == id);
+
         if (!exists)
         {
             var enrollment = new Enrollment
@@ -97,14 +129,79 @@ public class CourseController : Controller
                 UserId = userId,
                 CourseId = id,
                 EnrolledAt = DateTime.UtcNow,
-                Status = "Active"
+
+                // IMPORTANT
+                Status = "Pending"
             };
+
             _db.Enrollments.Add(enrollment);
+
             await _db.SaveChangesAsync();
-            TempData["SuccessMessage"] = "Successfully enrolled in the course!";
+
+            TempData["SuccessMessage"] =
+                "Enrollment request submitted. Waiting for approval.";
         }
 
         return RedirectToAction(nameof(Details), new { id });
+    }
+
+    // =========================
+    // Lecturer/Admin Approval
+    // =========================
+
+    [Authorize(Roles = $"{UserRoles.Admin},{UserRoles.Lecturer}")]
+    public async Task<IActionResult> ManageEnrollments()
+    {
+        var pendingEnrollments = await _db.Enrollments
+            .Include(e => e.User)
+            .Include(e => e.Course)
+            .Where(e => e.Status == "Pending")
+            .OrderByDescending(e => e.EnrolledAt)
+            .ToListAsync();
+
+        return View(pendingEnrollments);
+    }
+
+    [Authorize(Roles = $"{UserRoles.Admin},{UserRoles.Lecturer}")]
+    public async Task<IActionResult> ApproveEnrollment(int enrollmentId)
+    {
+        var enrollment = await _db.Enrollments
+            .FirstOrDefaultAsync(e => e.EnrollmentId == enrollmentId);
+
+        if (enrollment == null)
+        {
+            return NotFound();
+        }
+
+        enrollment.Status = "Active";
+
+        await _db.SaveChangesAsync();
+
+        TempData["SuccessMessage"] =
+            "Student enrollment approved.";
+
+        return RedirectToAction(nameof(ManageEnrollments));
+    }
+
+    [Authorize(Roles = $"{UserRoles.Admin},{UserRoles.Lecturer}")]
+    public async Task<IActionResult> RejectEnrollment(int enrollmentId)
+    {
+        var enrollment = await _db.Enrollments
+            .FirstOrDefaultAsync(e => e.EnrollmentId == enrollmentId);
+
+        if (enrollment == null)
+        {
+            return NotFound();
+        }
+
+        enrollment.Status = "Rejected";
+
+        await _db.SaveChangesAsync();
+
+        TempData["SuccessMessage"] =
+            "Student enrollment rejected.";
+
+        return RedirectToAction(nameof(ManageEnrollments));
     }
 
     [HttpGet]
@@ -134,6 +231,7 @@ public class CourseController : Controller
         };
 
         _db.Courses.Add(course);
+
         await _db.SaveChangesAsync();
 
         return RedirectToAction(nameof(Index));

@@ -1,4 +1,5 @@
 @using ILOWLearningSystem.Web.Models
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,6 +12,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/ILOWLearningSystem.Web.styles.css" asp-append-version="true" />
 </head>
@@ -26,101 +28,173 @@
                     <i class="fa-solid fa-graduation-cap me-2"></i>I.L.O.W
                 </a>
 
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#topNav">
+                <button class="navbar-toggler"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#topNav">
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
                 <div class="collapse navbar-collapse" id="topNav">
 
-                    <!-- NAVIGATION ITEMS -->
                     <ul class="navbar-nav ms-auto align-items-center">
 
                         @if (User?.Identity?.IsAuthenticated ?? false)
                         {
-                            
-                            @* ===== Admin 专属 ===== *@
+                            <!-- ================= ADMIN ================= -->
                             @if (User.IsInRole("Admin"))
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link" asp-controller="Admin" asp-action="Dashboard">
-                                        <i class="fa-solid fa-gear me-1"></i>Dashboard
+                                    <a class="nav-link"
+                                       asp-controller="Admin"
+                                       asp-action="Dashboard">
+                                        <i class="fa-solid fa-gauge-high me-1"></i>
+                                        Dashboard
                                     </a>
                                 </li>
+
                                 <li class="nav-item">
-                                    <a class="nav-link" asp-controller="Admin" asp-action="ManageUsers">
-                                        <i class="fa-solid fa-users me-1"></i>Manage Users
+                                    <a class="nav-link"
+                                       asp-controller="Admin"
+                                       asp-action="ManageUsers">
+                                        <i class="fa-solid fa-users me-1"></i>
+                                        Manage Users
                                     </a>
                                 </li>
+
                                 <li class="nav-item">
-                                    <a class="nav-link" asp-controller="Admin" asp-action="ManageAnnouncements">
-                                        <i class="fa-solid fa-bullhorn me-1"></i>Announcements
+                                    <a class="nav-link"
+                                       asp-controller="Course"
+                                       asp-action="Index">
+                                        <i class="fa-solid fa-book me-1"></i>
+                                        Courses
+                                    </a>
+                                </li>
+
+                                <li class="nav-item">
+                                    <a class="nav-link"
+                                       asp-controller="Enrollment"
+                                       asp-action="Pending">
+                                        <i class="fa-solid fa-user-clock me-1"></i>
+                                        Enrollment Requests
+                                    </a>
+                                </li>
+
+                                <li class="nav-item">
+                                    <a class="nav-link"
+                                       asp-controller="Account"
+                                       asp-action="Profile">
+                                        <i class="fa-solid fa-user me-1"></i>
+                                        Profile
                                     </a>
                                 </li>
                             }
 
-                            @* ===== Lecturer 专属 ===== *@
+                            <!-- ================= LECTURER ================= -->
                             @if (User.IsInRole("Lecturer"))
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link" asp-controller="Admin" asp-action="Dashboard">
-                                        <i class="fa-solid fa-gear me-1"></i>Dashboard
+                                    <a class="nav-link"
+                                       asp-controller="Admin"
+                                       asp-action="Dashboard">
+                                        <i class="fa-solid fa-gauge-high me-1"></i>
+                                        Dashboard
                                     </a>
                                 </li>
+
                                 <li class="nav-item">
-                                    <a class="nav-link" asp-controller="Course" asp-action="Index">
-                                        <i class="fa-solid fa-book me-1"></i>Courses
+                                    <a class="nav-link"
+                                       asp-controller="Course"
+                                       asp-action="Index">
+                                        <i class="fa-solid fa-book me-1"></i>
+                                        Courses
                                     </a>
                                 </li>
+
                                 <li class="nav-item">
-                                    <a class="nav-link" asp-controller="Admin" asp-action="ManageCourses">
-                                        <i class="fa-solid fa-book me-1"></i>My Courses
+                                    <a class="nav-link"
+                                       asp-controller="Enrollment"
+                                       asp-action="Pending">
+                                        <i class="fa-solid fa-user-check me-1"></i>
+                                        Enrollment Requests
                                     </a>
                                 </li>
+
                                 <li class="nav-item">
-                                    <a class="nav-link" asp-controller="Account" asp-action="Profile">
-                                        <i class="fa-solid fa-user me-1"></i>Profile
+                                    <a class="nav-link"
+                                       asp-controller="Account"
+                                       asp-action="Profile">
+                                        <i class="fa-solid fa-user me-1"></i>
+                                        Profile
                                     </a>
                                 </li>
                             }
 
-                            @* ===== Student 专属 ===== *@
+                            <!-- ================= STUDENT ================= -->
                             @if (User.IsInRole("Student"))
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link" asp-controller="Home" asp-action="Dashboard">
-                                        <i class="fa-solid fa-gauge me-1"></i>Dashboard
+                                    <a class="nav-link"
+                                       asp-controller="Home"
+                                       asp-action="Dashboard">
+                                        <i class="fa-solid fa-gauge-high me-1"></i>
+                                        Dashboard
                                     </a>
                                 </li>
+
                                 <li class="nav-item">
-                                    <a class="nav-link" asp-controller="Course" asp-action="Index">
-                                        <i class="fa-solid fa-book me-1"></i>Courses
+                                    <a class="nav-link"
+                                       asp-controller="Course"
+                                       asp-action="Index">
+                                        <i class="fa-solid fa-book-open me-1"></i>
+                                        Courses
                                     </a>
                                 </li>
+
                                 <li class="nav-item">
-                                    <a class="nav-link" asp-controller="Account" asp-action="Profile">
-                                        <i class="fa-solid fa-user me-1"></i>Profile
+                                    <a class="nav-link"
+                                       asp-controller="StressTracker"
+                                       asp-action="Index">
+                                        <i class="fa-solid fa-heart-pulse me-1"></i>
+                                        Stress Tracker
+                                    </a>
+                                </li>
+
+                                <li class="nav-item">
+                                    <a class="nav-link"
+                                       asp-controller="Account"
+                                       asp-action="Profile">
+                                        <i class="fa-solid fa-user-graduate me-1"></i>
+                                        Profile
                                     </a>
                                 </li>
                             }
 
-                            @* ===== Logout ===== *@
+                            <!-- ================= LOGOUT ================= -->
                             <li class="nav-item ms-lg-3">
-                                <a class="premium-btn premium-btn-outline py-2" asp-controller="Account" asp-action="Logout">
+                                <a class="premium-btn premium-btn-outline py-2"
+                                   asp-controller="Account"
+                                   asp-action="Logout">
                                     Logout
                                 </a>
                             </li>
                         }
                         else
                         {
-                            @* ===== 未登录 ===== *@
+                            <!-- ================= GUEST ================= -->
+
                             <li class="nav-item me-2">
-                                <a class="nav-link" asp-controller="Account" asp-action="Login">
+                                <a class="nav-link"
+                                   asp-controller="Account"
+                                   asp-action="Login">
                                     Login
                                 </a>
                             </li>
 
                             <li class="nav-item">
-                                <a class="premium-btn premium-btn-primary py-2" asp-controller="Account" asp-action="Register">
+                                <a class="premium-btn premium-btn-primary py-2"
+                                   asp-controller="Account"
+                                   asp-action="Register">
                                     Get Started
                                 </a>
                             </li>
@@ -133,22 +207,43 @@
         </nav>
     </header>
 
-
     <!-- MAIN CONTENT -->
     <main class="py-5">
         <div class="container">
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show mb-4">
+                    @TempData["SuccessMessage"]
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show mb-4">
+                    @TempData["ErrorMessage"]
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="alert"></button>
+                </div>
+            }
+
             @RenderBody()
+
         </div>
     </main>
 
-
     <!-- FOOTER -->
-    <footer class="text-center text-muted">
+    <footer class="text-center text-muted py-4">
         <div class="container">
-            <p class="mb-0">&copy; 2026 - I.L.O.W Learning System. All rights reserved.</p>
+            <p class="mb-0">
+                &copy; 2026 - I.L.O.W Learning System. All rights reserved.
+            </p>
         </div>
     </footer>
-
 
     <!-- SCRIPTS -->
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

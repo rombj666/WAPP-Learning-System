@@ -1,0 +1,112 @@
+﻿@model List<ILOWLearningSystem.Web.Models.Enrollment>
+
+@{
+    ViewData["Title"] = "Enrollment Requests";
+}
+
+<div class="container py-4">
+
+    <div class="premium-card p-4">
+
+        <h2 class="fw-bold mb-4">
+            Enrollment Requests
+        </h2>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success">
+                @TempData["SuccessMessage"]
+            </div>
+        }
+
+        @if (!Model.Any())
+        {
+            <div class="alert alert-info">
+                No pending enrollment requests.
+            </div>
+        }
+        else
+        {
+            <table class="table table-hover align-middle">
+
+                <thead class="table-light">
+                    <tr>
+                        <th>Student</th>
+                        <th>Course</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th width="220">Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+
+                            <td>
+                                @item.User?.FullName
+                            </td>
+
+                            <td>
+                                @item.Course?.Title
+                            </td>
+
+                            <td>
+                                @item.EnrolledAt.ToString("dd MMM yyyy")
+                            </td>
+
+                            <td>
+                                <span class="badge bg-warning text-dark">
+                                    @item.Status
+                                </span>
+                            </td>
+
+                            <td>
+
+                                <div class="d-flex gap-2">
+
+                                    <form asp-controller="Enrollment"
+                                          asp-action="Approve"
+                                          asp-route-id="@item.EnrollmentId"
+                                          method="post">
+
+                                        @Html.AntiForgeryToken()
+
+                                        <button type="submit"
+                                                class="btn btn-success btn-sm">
+                                            Approve
+                                        </button>
+
+                                    </form>
+
+                                    <form asp-controller="Enrollment"
+                                          asp-action="Decline"
+                                          asp-route-id="@item.EnrollmentId"
+                                          method="post">
+
+                                        @Html.AntiForgeryToken()
+
+                                        <button type="submit"
+                                                class="btn btn-danger btn-sm">
+                                            Decline
+                                        </button>
+
+                                    </form>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
+        }
+
+    </div>
+
+</div>

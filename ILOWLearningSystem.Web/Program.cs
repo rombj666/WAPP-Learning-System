@@ -11,6 +11,7 @@ builder.Services.AddControllersWithViews();
 
 // Use SQL Server
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
 if (!string.IsNullOrWhiteSpace(connectionString))
 {
     builder.Services.AddDbContext<AppDbContext>(options =>
@@ -28,10 +29,15 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
+// SESSION (IMPORTANT)
+builder.Services.AddSession();
+
 // Email settings
 builder.Services.Configure<EmailSettings>(
     builder.Configuration.GetSection("EmailSettings"));
+
 builder.Services.AddScoped<IEmailService, EmailService>();
+
 // Services
 builder.Services.AddScoped<IAuthService, AuthService>();
 
@@ -45,7 +51,11 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
 app.UseRouting();
+
+// SESSION (IMPORTANT)
+app.UseSession();
 
 app.UseAuthentication();
 app.UseAuthorization();

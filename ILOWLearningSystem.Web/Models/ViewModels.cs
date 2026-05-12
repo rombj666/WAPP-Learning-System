@@ -90,7 +90,16 @@ public class SubmitAssignmentViewModel
 public class StudentDashboardViewModel
 {
     public string StudentName { get; set; } = string.Empty;
+
     public List<Course> EnrolledCourses { get; set; } = new();
+
     public List<Assignment> UpcomingAssignments { get; set; } = new();
+
     public List<Submission> RecentSubmissions { get; set; } = new();
+
+    public int TotalCourses => EnrolledCourses.Count;
+
+    public int TotalAssignments => UpcomingAssignments.Count;
+
+    public int TotalSubmissions => RecentSubmissions.Count;
 }

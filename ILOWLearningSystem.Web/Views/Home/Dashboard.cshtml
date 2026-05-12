@@ -1,23 +1,151 @@
+@model ILOWLearningSystem.Web.Models.StudentDashboardViewModel
+
 @{
     ViewData["Title"] = "Dashboard";
 }
 
-<div class="container py-5">
-    <div class="row">
-        <div class="col-lg-8 mx-auto text-center">
-            <i class="bi bi-mortarboard-fill display-1 text-primary mb-3"></i>
-            <h1 class="display-5 fw-bold">Welcome to Your Dashboard</h1>
-            <p class="lead text-muted mb-4">
-                Your learning journey starts here. Browse courses, track your progress, and achieve your goals.
-            </p>
-            <div class="d-flex justify-content-center gap-3">
-                <a asp-controller="Course" asp-action="Index" class="btn btn-primary btn-lg">
-                    <i class="bi bi-book me-2"></i> Explore Courses
-                </a>
-                <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary btn-lg">
-                    <i class="bi bi-house me-2"></i> Home
-                </a>
+<div class="container py-4">
+
+    <!-- WELCOME -->
+    <div class="p-5 mb-5 rounded-4 text-white"
+         style="background: linear-gradient(135deg,#7c3aed,#4f46e5);">
+
+        <h1 class="fw-bold display-5">
+            Welcome back, @Model.StudentName!
+        </h1>
+
+        <p class="fs-5 mt-3">
+            Track your assignments, submissions, and learning progress.
+        </p>
+    </div>
+
+    <!-- COURSES -->
+    <h2 class="fw-bold mb-4">My Courses</h2>
+
+    <div class="row mb-5">
+
+        @foreach (var course in Model.EnrolledCourses)
+        {
+            <div class="col-md-6 mb-4">
+
+                <div class="card shadow-sm border-0 rounded-4 h-100">
+
+                    <div class="card-body">
+
+                        <h4 class="fw-bold">
+                            @course.Title
+                        </h4>
+
+                        <p class="text-muted">
+                            @course.Category
+                        </p>
+
+                        <p>
+                            @course.Description
+                        </p>
+
+                        <a asp-controller="Course"
+                           asp-action="Details"
+                           asp-route-id="@course.CourseId"
+                           class="btn btn-primary rounded-pill px-4">
+
+                            Open Course
+                        </a>
+
+                    </div>
+                </div>
             </div>
+        }
+
+    </div>
+
+    <!-- TIMELINE -->
+    <div class="card border-0 shadow rounded-4">
+
+        <div class="card-body p-4">
+
+            <h2 class="fw-bold mb-4">
+                <i class="fa-solid fa-calendar-days me-2"></i>
+                Timeline
+            </h2>
+
+            <!-- Upcoming Assignments -->
+            <h4 class="fw-bold mb-3">
+                Upcoming Assignments
+            </h4>
+
+            @if (Model.UpcomingAssignments.Any())
+            {
+                @foreach (var assignment in Model.UpcomingAssignments)
+                {
+                    <div class="border rounded-4 p-3 mb-3 d-flex justify-content-between align-items-center">
+
+                        <div>
+                            <h5 class="fw-bold mb-1">
+                                @assignment.Title
+                            </h5>
+
+                            <div class="text-muted">
+                                Due:
+                                @assignment.DueDate?.ToString("dd MMM yyyy hh:mm tt")
+                            </div>
+                        </div>
+
+                        <a asp-controller="Assignment"
+                           asp-action="Submit"
+                           asp-route-id="@assignment.AssignmentId"
+                           class="btn btn-primary rounded-pill">
+
+                            Add Submission
+                        </a>
+
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="alert alert-light border">
+                    No upcoming assignments.
+                </div>
+            }
+
+            <hr class="my-5" />
+
+            <!-- Recent Submissions -->
+            <h4 class="fw-bold mb-3">
+                Recent Submissions
+            </h4>
+
+            @if (Model.RecentSubmissions.Any())
+            {
+                @foreach (var submission in Model.RecentSubmissions)
+                {
+                    <div class="border rounded-4 p-3 mb-3">
+
+                        <h5 class="fw-bold mb-1">
+                            @submission.Assignment?.Title
+                        </h5>
+
+                        <div class="text-muted">
+                            Submitted:
+                            @submission.SubmittedAt.ToString("dd MMM yyyy hh:mm tt")
+                        </div>
+
+                        <span class="badge bg-success mt-2">
+                            @submission.Status
+                        </span>
+
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="alert alert-light border">
+                    No submissions yet.
+                </div>
+            }
+
         </div>
     </div>
+
 </div>

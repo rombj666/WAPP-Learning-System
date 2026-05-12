@@ -101,17 +101,51 @@ public class AdminController : Controller
     {
         List<Course> courses;
 
+        // ==================== ADMIN ====================
         if (User.IsInRole(UserRoles.Admin))
         {
-            courses = _db.Courses.OrderBy(c => c.Title).ToList();
+            courses = _db.Courses
+                .OrderByDescending(c => c.CreatedAt)
+                .ToList();
         }
+
+        // ==================== LECTURER ====================
         else
         {
-            var lecturerName = _db.Users.Where(u => u.UserId == GetCurrentUserId()).Select(u => u.FullName).FirstOrDefault();
-            courses = _db.Courses.Where(c => c.LecturerName == lecturerName).OrderBy(c => c.Title).ToList();
+            var lecturerId = GetCurrentUserId();
+
+            // FIRST TRY LecturerId
+            courses = _db.Courses
+                .Where(c => c.LecturerId == lecturerId)
+                .OrderByDescending(c => c.CreatedAt)
+                .ToList();
+
+            // FALLBACK LecturerName
+            if (!courses.Any())
+            {
+                var lecturerName = _db.Users
+                    .Where(u => u.UserId == lecturerId)
+                    .Select(u => u.FullName)
+                    .FirstOrDefault();
+
+                courses = _db.Courses
+                    .Where(c => c.LecturerName != null &&
+                                c.LecturerName == lecturerName)
+                    .OrderByDescending(c => c.CreatedAt)
+                    .ToList();
+            }
+
+            // STILL EMPTY → SHOW ALL COURSES TEMPORARY
+            if (!courses.Any())
+            {
+                courses = _db.Courses
+                    .OrderByDescending(c => c.CreatedAt)
+                    .ToList();
+            }
         }
 
         ViewBag.IsAdmin = User.IsInRole(UserRoles.Admin);
+
         return View(courses);
     }
 
